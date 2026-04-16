@@ -256,6 +256,55 @@ app.get("/api/stats", async (_req, res) => {
   }
 });
 
+
+// --- History API with in-memory cache ---
+let historyCache = { data: null, total: 0, expiry: 0 };
+const HISTORY_CACHE_MS = 5000;
+
+app.get("/api/history", async (req, res) => {
+  try {
+    const page = Math.max(0, parseInt(req.query.page) || 0);
+    const limit = Math.min(30, Math.max(1, parseInt(req.query.limit) || 30));
+    const offset = page * limit;
+
+    // Cache only first page (hot path)
+    if (page === 0 && historyCache.expiry > Date.now()) {
+      res.setHeader("Cache-Control", "public, max-age=5");
+      return res.json(historyCache.data);
+    }
+
+    const [comments, total] = await Promise.all([
+      pool.query(
+        "SELECT id, nickname, message, created_at FROM comments ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+        [limit, offset]
+      ),
+      pool.query("SELECT COUNT(*) as cnt FROM comments"),
+    ]);
+
+    const result = {
+      comments: comments.rows,
+      total: parseInt(total.rows[0].cnt),
+      page,
+      hasMore: offset + limit < parseInt(total.rows[0].cnt),
+    };
+
+    if (page === 0) {
+      historyCache = { data: result, total: result.total, expiry: Date.now() + HISTORY_CACHE_MS };
+    }
+
+    res.setHeader("Cache-Control", "public, max-age=5");
+    res.json(result);
+  } catch (e) {
+    console.error("History API error:", e.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Invalidate history cache on new comment
+function invalidateHistoryCache() {
+  historyCache.expiry = 0;
+}
+
 // [L-2] Custom 404 handler (registered after static + API routes, before server.listen)
 app.use((req, res) => {
   res.status(404).json({ error: "Not found" });
@@ -359,6 +408,7 @@ io.on("connection", (socket) => {
       // Each comment = one flower
       flowerBuffer++;
       flowerTotal++;
+      invalidateHistoryCache();
       io.emit("comment:new", comment);
       io.emit("flower:update", flowerTotal);
       io.emit("flower:animation", {});
