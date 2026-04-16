@@ -469,6 +469,7 @@ body{
       <div id="menu-wrap">
         <button class="bar-btn" id="menu-btn" type="button">&#8943;</button>
         <div id="menu-dropdown">
+          <button id="incense-menu-btn" type="button">향초 교체</button>
           <button id="suggest-menu-btn" type="button">기능 제안</button>
           <button id="share-menu-btn" type="button" >링크 공유</button>
           <button id="privacy-btn" type="button">개인정보처리방침</button>
@@ -992,7 +993,7 @@ var container = document.getElementById("three-container");
 var scene = new THREE.Scene();
 
 /* Fog for depth */
-scene.fog = new THREE.FogExp2(0x09090b, 0.08);
+scene.fog = new THREE.FogExp2(0x1a1a18, 0.05);
 
 var camera = new THREE.PerspectiveCamera(
   40,
@@ -1011,7 +1012,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
 /* Lighting */
-var ambient = new THREE.AmbientLight(0xffe8d0, 0.4);
+var ambient = new THREE.AmbientLight(0xffe8d0, 0.55);
 scene.add(ambient);
 
 var dirLight = new THREE.DirectionalLight(0xfff5e8, 0.8);
@@ -1193,7 +1194,7 @@ scene.add(ground);
 /* Dark patch near tombstone base */
 var darkPatchGeo = new THREE.PlaneGeometry(3.5, 2.0);
 var darkPatchMat = new THREE.MeshStandardMaterial({
-  color: 0x151510,
+  color: 0x2a2820,
   roughness: 1.0,
   metalness: 0.0,
 });
@@ -1202,6 +1203,131 @@ darkPatch.rotation.x = -Math.PI / 2;
 darkPatch.position.set(0, -0.695, 0.8);
 darkPatch.receiveShadow = true;
 scene.add(darkPatch);
+
+/* ===== Incense stick (향초) — 1-hour burn with smoke ===== */
+var INCENSE_DURATION_MS = 3600000;
+var INCENSE_ORIGINAL_HEIGHT = 0.7;
+var INCENSE_STORAGE_KEY = "boj_incense_start";
+var INCENSE_BASE_Y = 0.04;
+
+var incenseGroup = new THREE.Group();
+incenseGroup.position.set(0, -0.6, 1.85);
+scene.add(incenseGroup);
+
+var incenseHolderMat = new THREE.MeshStandardMaterial({color:0x2a1a0a, roughness:0.85, metalness:0.1});
+var incenseHolderGeo = new THREE.CylinderGeometry(0.06, 0.08, 0.04, 12);
+var incenseHolder = new THREE.Mesh(incenseHolderGeo, incenseHolderMat);
+incenseHolder.position.y = 0.02;
+incenseHolder.castShadow = true;
+incenseGroup.add(incenseHolder);
+
+var incenseStickMat = new THREE.MeshStandardMaterial({color:0x4a8a3a, roughness:0.9, metalness:0.0});
+var incenseStickGeo = new THREE.CylinderGeometry(0.008, 0.01, INCENSE_ORIGINAL_HEIGHT, 8);
+var incenseStick = new THREE.Mesh(incenseStickGeo, incenseStickMat);
+incenseStick.castShadow = true;
+incenseStick.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT / 2;
+incenseGroup.add(incenseStick);
+
+var incenseTipMat = new THREE.MeshBasicMaterial({color:0xff5522, transparent:true, opacity:0.9});
+var incenseTipGeo = new THREE.SphereGeometry(0.012, 8, 6);
+var incenseTip = new THREE.Mesh(incenseTipGeo, incenseTipMat);
+incenseTip.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT;
+incenseGroup.add(incenseTip);
+
+var incenseLight = new THREE.PointLight(0xff5522, 0.3, 1.2);
+incenseLight.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT;
+incenseGroup.add(incenseLight);
+
+var smokeParticles = [];
+var smokeGeo = new THREE.SphereGeometry(0.018, 6, 6);
+for (var si = 0; si < 18; si++) {
+  var smokeMat = new THREE.MeshBasicMaterial({color:0xcccccc, transparent:true, opacity:0});
+  var sm = new THREE.Mesh(smokeGeo, smokeMat);
+  sm.userData = {
+    life: Math.random(),
+    driftX: (Math.random() - 0.5) * 0.002,
+    driftZ: (Math.random() - 0.5) * 0.002,
+    speed: 0.006 + Math.random() * 0.004,
+  };
+  incenseGroup.add(sm);
+  smokeParticles.push(sm);
+}
+
+function getIncenseStartTime() {
+  try {
+    var stored = localStorage.getItem(INCENSE_STORAGE_KEY);
+    if (stored) {
+      var parsed = parseInt(stored, 10);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+  } catch (e) {}
+  var now = Date.now();
+  try { localStorage.setItem(INCENSE_STORAGE_KEY, String(now)); } catch (e) {}
+  return now;
+}
+
+function replaceIncense() {
+  var now = Date.now();
+  try { localStorage.setItem(INCENSE_STORAGE_KEY, String(now)); } catch (e) {}
+  for (var si = 0; si < smokeParticles.length; si++) {
+    smokeParticles[si].userData.life = Math.random() * 0.3;
+    smokeParticles[si].material.opacity = 0;
+  }
+}
+window.replaceIncense = replaceIncense;
+
+function updateIncense() {
+  var elapsed = Date.now() - getIncenseStartTime();
+  var remaining = Math.max(0, 1 - elapsed / INCENSE_DURATION_MS);
+  var currentHeight = INCENSE_ORIGINAL_HEIGHT * remaining;
+  var burning = remaining > 0.002;
+
+  incenseStick.visible = burning;
+  incenseTip.visible = burning;
+  incenseLight.visible = burning;
+
+  if (burning) {
+    incenseStick.scale.y = remaining;
+    incenseStick.position.y = INCENSE_BASE_Y + currentHeight / 2;
+    var tipY = INCENSE_BASE_Y + currentHeight;
+    incenseTip.position.y = tipY;
+    incenseLight.position.y = tipY;
+    incenseLight.intensity = 0.28 + Math.random() * 0.08;
+    incenseTipMat.opacity = 0.8 + Math.random() * 0.2;
+  }
+
+  var emitY = INCENSE_BASE_Y + currentHeight;
+  for (var si = 0; si < smokeParticles.length; si++) {
+    var sm = smokeParticles[si];
+    var ud = sm.userData;
+    ud.life += ud.speed * 0.08;
+    if (ud.life >= 1 || !burning) {
+      if (burning) {
+        ud.life = 0;
+        sm.position.set(
+          (Math.random() - 0.5) * 0.008,
+          emitY,
+          (Math.random() - 0.5) * 0.008
+        );
+        ud.driftX = (Math.random() - 0.5) * 0.002;
+        ud.driftZ = (Math.random() - 0.5) * 0.002;
+      } else {
+        sm.material.opacity = 0;
+        continue;
+      }
+    } else {
+      sm.position.y += ud.speed;
+      sm.position.x += ud.driftX;
+      sm.position.z += ud.driftZ;
+      ud.driftX *= 1.01;
+      ud.driftZ *= 1.01;
+    }
+    var fadeIn = Math.min(ud.life * 4, 1);
+    var fadeOut = Math.min((1 - ud.life) * 2.5, 1);
+    sm.material.opacity = 0.3 * fadeIn * fadeOut;
+    sm.scale.setScalar(1 + ud.life * 2.5);
+  }
+}
 
 /* ===== 3D Chrysanthemum Flower System ===== */
 
@@ -1357,10 +1483,10 @@ function getFlowerPosition(idx) {
   var r = pseudoRandSimple(idx);
   var r2 = pseudoRandSimple(idx * 7 + 3);
   var r3 = pseudoRandSimple(idx * 13 + 17);
-  var x = (r - 0.5) * 1.8 + (r3 - 0.5) * 0.3;
-  var z = 1.2 + r2 * 0.8 + (r3 - 0.5) * 0.3;
-  var layer = Math.floor(idx / 5);
-  var y = -0.6 + layer * 0.08 + r * 0.03;
+  var x = (r - 0.5) * 1.1 + (r3 - 0.5) * 0.2;
+  var z = 1.3 + r2 * 0.5 + (r3 - 0.5) * 0.2;
+  var layer = Math.floor(idx / 7);
+  var y = -0.62 + layer * 0.04 + r * 0.02;
   return { x: x, z: z, y: y };
 }
 
@@ -1513,6 +1639,7 @@ function animate() {
   camera.lookAt(0, 0.0, 1.0);
 
   updateFlowerAnimations();
+  updateIncense();
 
   renderer.render(scene, camera);
 }
@@ -1604,6 +1731,13 @@ document.getElementById('share-menu-btn').addEventListener('click', function(){
   var dd = document.getElementById('menu-dropdown');
   if(dd) dd.classList.remove('show');
   window.shareLink();
+});
+
+/* Incense replace listener */
+document.getElementById('incense-menu-btn').addEventListener('click', function(){
+  var dd = document.getElementById('menu-dropdown');
+  if(dd) dd.classList.remove('show');
+  if (typeof window.replaceIncense === 'function') window.replaceIncense();
 });
 
 
