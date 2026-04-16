@@ -1328,7 +1328,7 @@ var smokeTexture = (function(){
 })();
 
 var smokeParticles = [];
-for (var si = 0; si < 38; si++) {
+for (var si = 0; si < 40; si++) {
   var smokeMat = new THREE.SpriteMaterial({
     map: smokeTexture,
     color: 0xd8d8d8,
@@ -1339,13 +1339,13 @@ for (var si = 0; si < 38; si++) {
     rotation: Math.random() * Math.PI * 2,
   });
   var sm = new THREE.Sprite(smokeMat);
-  sm.scale.set(0.08, 0.08, 1);
+  sm.scale.set(0.1, 0.1, 1);
   sm.userData = {
     life: Math.random(),
-    driftX: (Math.random() - 0.5) * 0.001,
-    driftZ: (Math.random() - 0.5) * 0.001,
-    speed: 0.002 + Math.random() * 0.0015,
-    rotSpeed: (Math.random() - 0.5) * 0.006,
+    driftX: (Math.random() - 0.5) * 0.003,
+    driftZ: (Math.random() - 0.5) * 0.003,
+    speed: 0.008 + Math.random() * 0.005,
+    rotSpeed: (Math.random() - 0.5) * 0.008,
     swirlPhase: Math.random() * Math.PI * 2,
     burst: false,
   };
@@ -1567,19 +1567,19 @@ function burstIncenseSmoke() {
   if (remaining <= 0.002) return;
   var emitY = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT * remaining;
   var count = 0;
-  for (var si = 0; si < smokeParticles.length && count < 10; si++) {
+  for (var si = 0; si < smokeParticles.length && count < 12; si++) {
     var sm = smokeParticles[si];
-    if (sm.userData.life >= 0.8 || sm.material.opacity < 0.03) {
+    if (sm.userData.life >= 0.75 || sm.material.opacity < 0.03) {
       sm.userData.life = 0;
       sm.userData.burst = true;
-      sm.userData.speed = 0.006 + Math.random() * 0.004;
-      sm.userData.driftX = (Math.random() - 0.5) * 0.008;
-      sm.userData.driftZ = (Math.random() - 0.5) * 0.008;
-      sm.userData.rotSpeed = (Math.random() - 0.5) * 0.015;
+      sm.userData.speed = 0.015 + Math.random() * 0.01;
+      sm.userData.driftX = (Math.random() - 0.5) * 0.015;
+      sm.userData.driftZ = (Math.random() - 0.5) * 0.015;
+      sm.userData.rotSpeed = (Math.random() - 0.5) * 0.02;
       sm.position.set(
-        (Math.random() - 0.5) * 0.015,
-        emitY + (Math.random() - 0.5) * 0.01,
-        (Math.random() - 0.5) * 0.015
+        (Math.random() - 0.5) * 0.02,
+        emitY + (Math.random() - 0.5) * 0.02,
+        (Math.random() - 0.5) * 0.02
       );
       count++;
     }
@@ -1630,20 +1630,20 @@ function updateSmokeParticles(burning, emitY) {
     var sm = smokeParticles[si];
     var ud = sm.userData;
     var isBurst = ud.burst;
-    // Slow life progression so sprites linger and overlap → continuous sheet
-    ud.life += ud.speed * (isBurst ? 0.06 : 0.045);
+    // ~4-5s per particle life (speed 0.01 * 0.4 = 0.004/frame → 250 frames)
+    ud.life += ud.speed * (isBurst ? 0.3 : 0.4);
     if (ud.life >= 1) {
       if (burning && !isBurst) {
         ud.life = 0;
         sm.position.set(
-          (Math.random() - 0.5) * 0.005,
+          (Math.random() - 0.5) * 0.01,
           emitY,
-          (Math.random() - 0.5) * 0.005
+          (Math.random() - 0.5) * 0.01
         );
-        ud.driftX = (Math.random() - 0.5) * 0.001;
-        ud.driftZ = (Math.random() - 0.5) * 0.001;
-        ud.speed = 0.002 + Math.random() * 0.0015;
-        ud.rotSpeed = (Math.random() - 0.5) * 0.006;
+        ud.driftX = (Math.random() - 0.5) * 0.003;
+        ud.driftZ = (Math.random() - 0.5) * 0.003;
+        ud.speed = 0.008 + Math.random() * 0.005;
+        ud.rotSpeed = (Math.random() - 0.5) * 0.008;
         ud.swirlPhase = Math.random() * Math.PI * 2;
       } else {
         ud.burst = false;
@@ -1654,27 +1654,23 @@ function updateSmokeParticles(burning, emitY) {
       sm.material.opacity = 0;
       continue;
     } else {
-      // Organic swirl — sine-driven lateral drift that intensifies with height
-      var swirlAmp = 0.0006 * (1 + ud.life * 4);
-      var swirlX = Math.sin(ud.life * Math.PI * 2.5 + ud.swirlPhase) * swirlAmp;
-      var swirlZ = Math.cos(ud.life * Math.PI * 2.0 + ud.swirlPhase) * swirlAmp * 0.7;
-      // Decelerate as it rises (heavier smoke near tip, lighter wisps above)
-      sm.position.y += ud.speed * (1.2 - ud.life * 0.5);
+      var swirlAmp = 0.002 * (1 + ud.life * 4);
+      var swirlX = Math.sin(ud.life * Math.PI * 3 + ud.swirlPhase) * swirlAmp;
+      var swirlZ = Math.cos(ud.life * Math.PI * 2.5 + ud.swirlPhase) * swirlAmp * 0.7;
+      sm.position.y += ud.speed * (1.2 - ud.life * 0.4);
       sm.position.x += ud.driftX + swirlX;
       sm.position.z += ud.driftZ + swirlZ;
-      ud.driftX *= 1.005;
-      ud.driftZ *= 1.005;
+      ud.driftX *= 1.006;
+      ud.driftZ *= 1.006;
       sm.material.rotation += ud.rotSpeed;
     }
-    // Gentle bell-curve opacity: fade in fast, hold, then slow fade out
-    var fadeIn = Math.min(ud.life * 6, 1);
-    var fadeOut = ud.life < 0.5 ? 1 : Math.max(0, 1 - (ud.life - 0.5) * 2);
-    var peak = isBurst ? 0.45 : 0.22;
+    var fadeIn = Math.min(ud.life * 5, 1);
+    var fadeOut = ud.life < 0.45 ? 1 : Math.max(0, 1 - (ud.life - 0.45) * 1.8);
+    var peak = isBurst ? 0.4 : 0.28;
     sm.material.opacity = peak * fadeIn * fadeOut;
-    // Start small near the tip, grow into a wide diffuse cloud
     var baseScale = isBurst
-      ? (0.1 + ud.life * 0.5)
-      : (0.05 + ud.life * 0.65);
+      ? (0.15 + ud.life * 1.2)
+      : (0.1 + ud.life * 1.8);
     sm.scale.set(baseScale, baseScale, 1);
   }
 }
