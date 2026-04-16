@@ -1291,20 +1291,195 @@ var incenseLight = new THREE.PointLight(0xff8833, 0.35, 1.5);
 incenseLight.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT;
 incenseGroup.add(incenseLight);
 
+// Soft radial-gradient texture (drawn on canvas) - gives smoke a real wispy look
+// instead of the "flying pellet" impression that SphereGeometry produces.
+var smokeTexture = (function(){
+  var c = document.createElement("canvas");
+  c.width = 128; c.height = 128;
+  var ctx = c.getContext("2d");
+  var grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grad.addColorStop(0.0, "rgba(220,220,220,0.55)");
+  grad.addColorStop(0.25, "rgba(200,200,200,0.30)");
+  grad.addColorStop(0.55, "rgba(180,180,180,0.12)");
+  grad.addColorStop(1.0, "rgba(160,160,160,0.0)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 128, 128);
+  var t = new THREE.CanvasTexture(c);
+  t.minFilter = THREE.LinearFilter;
+  t.magFilter = THREE.LinearFilter;
+  return t;
+})();
+
 var smokeParticles = [];
-var smokeGeo = new THREE.SphereGeometry(0.018, 6, 6);
-for (var si = 0; si < 24; si++) {
-  var smokeMat = new THREE.MeshBasicMaterial({color:0xcccccc, transparent:true, opacity:0});
-  var sm = new THREE.Mesh(smokeGeo, smokeMat);
+for (var si = 0; si < 28; si++) {
+  var smokeMat = new THREE.SpriteMaterial({
+    map: smokeTexture,
+    color: 0xcfcfcf,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    rotation: Math.random() * Math.PI * 2,
+  });
+  var sm = new THREE.Sprite(smokeMat);
+  sm.scale.set(0.12, 0.12, 1);
   sm.userData = {
     life: Math.random(),
-    driftX: (Math.random() - 0.5) * 0.002,
-    driftZ: (Math.random() - 0.5) * 0.002,
-    speed: 0.006 + Math.random() * 0.004,
+    driftX: (Math.random() - 0.5) * 0.0015,
+    driftZ: (Math.random() - 0.5) * 0.0015,
+    speed: 0.004 + Math.random() * 0.003,
+    rotSpeed: (Math.random() - 0.5) * 0.01,
+    swirlPhase: Math.random() * Math.PI * 2,
     burst: false,
   };
   incenseGroup.add(sm);
   smokeParticles.push(sm);
+}
+
+// ----- Lighter (라이터) — only visible during replace animation -----
+var lighterGroup = new THREE.Group();
+lighterGroup.visible = false;
+lighterGroup.position.set(0.35, INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT, 0);
+incenseGroup.add(lighterGroup);
+
+var lighterBodyMat = new THREE.MeshStandardMaterial({color:0x7a1a1a, roughness:0.4, metalness:0.3});
+var lighterBodyGeo = new THREE.BoxGeometry(0.06, 0.1, 0.035);
+var lighterBody = new THREE.Mesh(lighterBodyGeo, lighterBodyMat);
+lighterBody.position.y = -0.05;
+lighterGroup.add(lighterBody);
+
+var lighterCapMat = new THREE.MeshStandardMaterial({color:0xbfbfbf, roughness:0.3, metalness:0.85});
+var lighterCapGeo = new THREE.BoxGeometry(0.06, 0.02, 0.035);
+var lighterCap = new THREE.Mesh(lighterCapGeo, lighterCapMat);
+lighterCap.position.y = 0.01;
+lighterGroup.add(lighterCap);
+
+var lighterFlameMat = new THREE.MeshBasicMaterial({color:0xffaa33, transparent:true, opacity:0.95});
+var lighterFlameGeo = new THREE.ConeGeometry(0.018, 0.07, 6);
+var lighterFlame = new THREE.Mesh(lighterFlameGeo, lighterFlameMat);
+lighterFlame.position.y = 0.06;
+lighterFlame.visible = false;
+lighterGroup.add(lighterFlame);
+
+var lighterLight = new THREE.PointLight(0xffaa33, 0, 0.8);
+lighterLight.position.y = 0.06;
+lighterGroup.add(lighterLight);
+
+// ----- Replace-animation state machine -----
+var incenseAnim = {
+  active: false,
+  startAt: 0,
+  duration: 2800,
+};
+
+function startIncenseReplaceAnim(durationMs) {
+  incenseAnim.active = true;
+  incenseAnim.startAt = performance.now();
+  incenseAnim.duration = durationMs || 2800;
+  lighterGroup.position.set(0.5, INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT * 0.4, 0);
+  lighterGroup.rotation.z = -0.4;
+  lighterGroup.visible = false;
+  lighterFlame.visible = false;
+  lighterLight.intensity = 0;
+}
+window.startIncenseReplaceAnim = startIncenseReplaceAnim;
+
+function updateIncenseAnim() {
+  if (!incenseAnim.active) return false;
+  var t = (performance.now() - incenseAnim.startAt) / incenseAnim.duration;
+  if (t >= 1) {
+    // finalize: back to normal burn
+    incenseAnim.active = false;
+    lighterGroup.visible = false;
+    lighterFlame.visible = false;
+    lighterLight.intensity = 0;
+    incenseStick.visible = true;
+    incenseHit.visible = true;
+    incenseStick.scale.y = 1;
+    incenseStick.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT / 2;
+    incenseStickMat.opacity = 1;
+    incenseStickMat.transparent = false;
+    return true;
+  }
+
+  // Stage 1 [0.00-0.22]: pull old stick up & fade out
+  // Stage 2 [0.22-0.28]: empty
+  // Stage 3 [0.28-0.50]: new stick drops from above, fading in
+  // Stage 4 [0.50-0.70]: lighter flies in from right, tilts toward tip
+  // Stage 5 [0.70-0.88]: lighter flame ignites the tip
+  // Stage 6 [0.88-1.00]: lighter retreats
+  incenseStickMat.transparent = true;
+
+  if (t < 0.22) {
+    var u = t / 0.22;
+    var lift = INCENSE_ORIGINAL_HEIGHT * 0.5 * u;
+    incenseStick.visible = true;
+    incenseHit.visible = true;
+    incenseStick.scale.y = 1;
+    incenseStick.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT / 2 + lift;
+    incenseStickMat.opacity = 1 - u;
+    incenseTip.visible = false;
+    incenseLight.visible = false;
+    lighterGroup.visible = false;
+  } else if (t < 0.28) {
+    incenseStick.visible = false;
+    incenseHit.visible = false;
+    incenseTip.visible = false;
+    incenseLight.visible = false;
+    lighterGroup.visible = false;
+  } else if (t < 0.5) {
+    var u = (t - 0.28) / 0.22;
+    var drop = INCENSE_ORIGINAL_HEIGHT * 0.5 * (1 - u);
+    incenseStick.visible = true;
+    incenseHit.visible = true;
+    incenseStick.scale.y = 1;
+    incenseStick.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT / 2 + drop;
+    incenseStickMat.opacity = u;
+    incenseTip.visible = false;
+    incenseLight.visible = false;
+    lighterGroup.visible = false;
+  } else if (t < 0.7) {
+    var u = (t - 0.5) / 0.2;
+    incenseStick.visible = true;
+    incenseHit.visible = true;
+    incenseStick.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT / 2;
+    incenseStickMat.opacity = 1;
+    lighterGroup.visible = true;
+    var x = 0.5 - 0.38 * u;
+    var tipY = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT - 0.02;
+    lighterGroup.position.set(x, tipY, 0);
+    lighterGroup.rotation.z = -0.4 + 0.2 * u;
+    lighterFlame.visible = false;
+    lighterLight.intensity = 0;
+  } else if (t < 0.88) {
+    var u = (t - 0.7) / 0.18;
+    lighterGroup.visible = true;
+    lighterGroup.position.set(0.12, INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT - 0.02, 0);
+    lighterGroup.rotation.z = -0.2;
+    lighterFlame.visible = true;
+    lighterFlame.scale.set(1, 0.6 + Math.sin(u * 30) * 0.3 + u * 0.4, 1);
+    lighterFlameMat.opacity = 0.9 + Math.random() * 0.1;
+    lighterLight.intensity = 0.5 + Math.random() * 0.3;
+    // Light up the incense tip
+    incenseTip.visible = true;
+    incenseTipMat.opacity = Math.min(1, u * 1.2);
+    incenseTip.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT;
+    incenseLight.visible = true;
+    incenseLight.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT;
+    incenseLight.intensity = 0.2 * u + Math.random() * 0.05;
+  } else {
+    var u = (t - 0.88) / 0.12;
+    lighterGroup.visible = true;
+    var x = 0.12 + 0.4 * u;
+    lighterGroup.position.set(x, INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT - 0.02, 0);
+    lighterGroup.rotation.z = -0.2 - 0.3 * u;
+    lighterFlame.visible = u < 0.3;
+    lighterLight.intensity = Math.max(0, 0.6 * (1 - u * 3));
+    incenseTip.visible = true;
+    incenseTipMat.opacity = 0.9;
+    incenseLight.visible = true;
+    incenseLight.intensity = 0.3;
+  }
+  return true;
 }
 
 function getIncenseStartTime() {
@@ -1333,18 +1508,39 @@ function setIncenseCount(n) {
   var btn = document.getElementById("incense-replace-btn");
   if (btn) btn.textContent = "향 교체 · " + n;
 }
+window.setIncenseCount = setIncenseCount;
 
-function replaceIncense() {
+// Hard reset - called when the server confirms a replacement has finished.
+// We rely on the server's global count so every client sees the same value.
+function performIncenseReplace(globalCount) {
   var now = Date.now();
   try { localStorage.setItem(INCENSE_STORAGE_KEY, String(now)); } catch (e) {}
-  setIncenseCount(getIncenseCount() + 1);
+  if (typeof globalCount === "number") setIncenseCount(globalCount);
   for (var si = 0; si < smokeParticles.length; si++) {
     smokeParticles[si].userData.life = Math.random() * 0.3;
     smokeParticles[si].userData.burst = false;
     smokeParticles[si].material.opacity = 0;
   }
 }
-window.replaceIncense = replaceIncense;
+window.performIncenseReplace = performIncenseReplace;
+
+// Button click → ask server to initiate a replace. The server broadcasts start
+// so every connected client disables the button and plays the same animation.
+function requestIncenseReplace() {
+  if (window.__socket && window.__socket.connected) {
+    window.__socket.emit("incense:replace");
+  }
+}
+window.requestIncenseReplace = requestIncenseReplace;
+
+function setIncenseButtonDisabled(disabled) {
+  var btn = document.getElementById("incense-replace-btn");
+  if (!btn) return;
+  btn.disabled = !!disabled;
+  btn.style.opacity = disabled ? "0.45" : "";
+  btn.style.cursor = disabled ? "not-allowed" : "";
+}
+window.setIncenseButtonDisabled = setIncenseButtonDisabled;
 
 // Emit a burst of smoke at the current tip - triggered by pointer/touch on the stick
 function burstIncenseSmoke() {
@@ -1376,6 +1572,15 @@ function burstIncenseSmoke() {
 window.burstIncenseSmoke = burstIncenseSmoke;
 
 function updateIncense() {
+  // Animation (pull → insert → light) owns the stick/tip/lighter during replace
+  if (updateIncenseAnim()) {
+    // Still run smoke particles below so smoke trails keep flowing visually
+    var animBurning = true;
+    var emitY0 = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT;
+    updateSmokeParticles(animBurning, emitY0);
+    return;
+  }
+
   var elapsed = Date.now() - getIncenseStartTime();
   var remaining = Math.max(0, 1 - elapsed / INCENSE_DURATION_MS);
   var currentHeight = INCENSE_ORIGINAL_HEIGHT * remaining;
@@ -1398,23 +1603,28 @@ function updateIncense() {
     incenseTipMat.opacity = 0.85 + Math.random() * 0.15;
   }
 
-  var emitY = INCENSE_BASE_Y + currentHeight;
+  updateSmokeParticles(burning, INCENSE_BASE_Y + currentHeight);
+}
+
+function updateSmokeParticles(burning, emitY) {
   for (var si = 0; si < smokeParticles.length; si++) {
     var sm = smokeParticles[si];
     var ud = sm.userData;
     var isBurst = ud.burst;
-    ud.life += ud.speed * (isBurst ? 0.06 : 0.08);
+    ud.life += ud.speed * (isBurst ? 0.08 : 0.1);
     if (ud.life >= 1) {
       if (burning && !isBurst) {
         ud.life = 0;
         sm.position.set(
-          (Math.random() - 0.5) * 0.008,
+          (Math.random() - 0.5) * 0.006,
           emitY,
-          (Math.random() - 0.5) * 0.008
+          (Math.random() - 0.5) * 0.006
         );
-        ud.driftX = (Math.random() - 0.5) * 0.002;
-        ud.driftZ = (Math.random() - 0.5) * 0.002;
-        ud.speed = 0.006 + Math.random() * 0.004;
+        ud.driftX = (Math.random() - 0.5) * 0.0015;
+        ud.driftZ = (Math.random() - 0.5) * 0.0015;
+        ud.speed = 0.004 + Math.random() * 0.003;
+        ud.rotSpeed = (Math.random() - 0.5) * 0.01;
+        ud.swirlPhase = Math.random() * Math.PI * 2;
       } else {
         ud.burst = false;
         sm.material.opacity = 0;
@@ -1424,17 +1634,20 @@ function updateIncense() {
       sm.material.opacity = 0;
       continue;
     } else {
-      sm.position.y += ud.speed;
-      sm.position.x += ud.driftX;
-      sm.position.z += ud.driftZ;
-      ud.driftX *= 1.01;
-      ud.driftZ *= 1.01;
+      var swirl = Math.sin(ud.life * Math.PI * 2 + ud.swirlPhase) * 0.0008 * (1 + ud.life * 3);
+      sm.position.y += ud.speed * (1 + ud.life * 0.4);
+      sm.position.x += ud.driftX + swirl;
+      sm.position.z += ud.driftZ + Math.cos(ud.life * Math.PI * 1.7 + ud.swirlPhase) * 0.0006;
+      ud.driftX *= 1.008;
+      ud.driftZ *= 1.008;
+      sm.material.rotation += ud.rotSpeed;
     }
-    var fadeIn = Math.min(ud.life * 4, 1);
-    var fadeOut = Math.min((1 - ud.life) * 2.5, 1);
-    var peak = isBurst ? 0.55 : 0.3;
+    var fadeIn = Math.min(ud.life * 5, 1);
+    var fadeOut = Math.min((1 - ud.life) * 1.8, 1);
+    var peak = isBurst ? 0.6 : 0.42;
     sm.material.opacity = peak * fadeIn * fadeOut;
-    sm.scale.setScalar(1 + ud.life * (isBurst ? 3.5 : 2.5));
+    var baseScale = 0.06 + ud.life * (isBurst ? 0.42 : 0.32);
+    sm.scale.set(baseScale, baseScale, 1);
   }
 }
 
@@ -1861,16 +2074,19 @@ document.getElementById('share-menu-btn').addEventListener('click', function(){
   window.shareLink();
 });
 
-/* Incense replace listener */
+/* Incense replace listener — asks the server, which broadcasts to everyone */
 (function initIncenseButton(){
   var btn = document.getElementById('incense-replace-btn');
   if (!btn) return;
+  // Initial label is seeded from localStorage; server will overwrite with the
+  // global count shortly after connect via incense:state.
   try {
     var stored = parseInt(localStorage.getItem('boj_incense_count'), 10);
     if (!isNaN(stored) && stored >= 0) btn.textContent = '향 교체 · ' + stored;
   } catch (e) {}
   btn.addEventListener('click', function(){
-    if (typeof window.replaceIncense === 'function') window.replaceIncense();
+    if (btn.disabled) return;
+    if (typeof window.requestIncenseReplace === 'function') window.requestIncenseReplace();
   });
 })();
 
@@ -1916,10 +2132,50 @@ document.getElementById('suggest-submit').addEventListener('click', function(){
 
 /* ===== Socket.io ===== */
 var socket = io();
+window.__socket = socket;
 
 socket.on('rate:limited', function(data) {
   var sec = data && data.seconds ? data.seconds : 5;
   showRateLimitModal(sec);
+});
+
+// Initial state after connect — sync the global incense counter and, if a
+// replace is already in flight, join it mid-flight so the button stays locked.
+socket.on("incense:state", function(data) {
+  if (!data) return;
+  if (typeof window.setIncenseCount === "function" && typeof data.count === "number") {
+    window.setIncenseCount(data.count);
+  }
+  if (data.replacing && typeof window.startIncenseReplaceAnim === "function") {
+    window.setIncenseButtonDisabled(true);
+    window.startIncenseReplaceAnim(data.durationMs || 2800);
+  }
+});
+
+// Another user is replacing — disable our button and play the same animation
+socket.on("incense:replacing:start", function(data) {
+  if (typeof window.setIncenseButtonDisabled === "function") {
+    window.setIncenseButtonDisabled(true);
+  }
+  if (typeof window.startIncenseReplaceAnim === "function") {
+    window.startIncenseReplaceAnim(data && data.durationMs ? data.durationMs : 2800);
+  }
+});
+
+// Replacement done — re-enable button, reset burn timer, update global count
+socket.on("incense:replacing:end", function(data) {
+  if (typeof window.performIncenseReplace === "function") {
+    window.performIncenseReplace(data && typeof data.count === "number" ? data.count : undefined);
+  }
+  if (typeof window.setIncenseButtonDisabled === "function") {
+    window.setIncenseButtonDisabled(false);
+  }
+});
+
+socket.on("incense:busy", function() {
+  if (typeof window.setIncenseButtonDisabled === "function") {
+    window.setIncenseButtonDisabled(true);
+  }
 });
 
 fetch("/api/stats")

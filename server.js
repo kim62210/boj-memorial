@@ -87,14 +87,26 @@ async function initDB() {
       last_action TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
     CREATE INDEX IF NOT EXISTS idx_rate_limits_time ON rate_limits(last_action);
+
+    CREATE TABLE IF NOT EXISTS incense (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      count INTEGER NOT NULL DEFAULT 0
+    );
+    INSERT INTO incense (id, count) VALUES (1, 0) ON CONFLICT DO NOTHING;
   `);
   const res = await pool.query("SELECT count FROM flowers WHERE id = 1");
-  return res.rows[0].count;
+  const incRes = await pool.query("SELECT count FROM incense WHERE id = 1");
+  return { flowerCount: res.rows[0].count, incenseCount: incRes.rows[0].count };
 }
 
 // --- In-memory flower buffer ---
 let flowerBuffer = 0;
 let flowerTotal = 0;
+
+// --- Incense replace state (global, single-writer) ---
+const INCENSE_REPLACE_MS = 2800;
+let incenseTotal = 0;
+const incenseState = { replacing: false, endsAt: 0 };
 
 async function flushFlowers() {
   if (flowerBuffer > 0) {
@@ -376,6 +388,46 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("incense:replace", async () => {
+    const dt = null;
+    if (!checkRate(ip, "incense", 3000, null)) {
+      socket.emit("rate:limited", { seconds: 3 });
+      return;
+    }
+    if (incenseState.replacing) {
+      socket.emit("incense:busy", { endsAt: incenseState.endsAt });
+      return;
+    }
+    incenseState.replacing = true;
+    incenseState.endsAt = Date.now() + INCENSE_REPLACE_MS;
+    incenseTotal++;
+    io.emit("incense:replacing:start", {
+      durationMs: INCENSE_REPLACE_MS,
+      count: incenseTotal,
+    });
+    try {
+      await pool.query("UPDATE incense SET count = $1 WHERE id = 1", [incenseTotal]);
+    } catch (e) {
+      console.error("Incense count persist failed:", e.message);
+    }
+    setTimeout(() => {
+      incenseState.replacing = false;
+      io.emit("incense:replacing:end", { count: incenseTotal });
+    }, INCENSE_REPLACE_MS);
+  });
+
+  // Send current incense state to newly connected client
+  {
+    const remaining = incenseState.replacing
+      ? Math.max(0, incenseState.endsAt - Date.now())
+      : 0;
+    socket.emit("incense:state", {
+      replacing: incenseState.replacing,
+      durationMs: remaining,
+      count: incenseTotal,
+    });
+  }
+
   socket.on("disconnect", () => {
     onlineCount = Math.max(0, onlineCount - 1);
     io.emit("online", onlineCount);
@@ -398,11 +450,12 @@ process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
 // Start
-initDB().then(async (count) => {
-  flowerTotal = count;
+initDB().then(async (counts) => {
+  flowerTotal = counts.flowerCount;
+  incenseTotal = counts.incenseCount;
   await restoreRateLimits();
   server.listen(PORT, () => {
-    console.log(`BOJ Memorial running on port ${PORT} (PostgreSQL)`);
+    console.log(`BOJ Memorial running on port ${PORT} (PostgreSQL, incense=${incenseTotal})`);
   });
 }).catch((e) => {
   console.error("DB init failed:", e.message);
