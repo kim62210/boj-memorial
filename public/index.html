@@ -1648,8 +1648,8 @@ function updateSmokeParticles(burning, emitY) {
     // Moebius-like S-curve: wide sinuous path that twists in 3D
     var h = sm.position.y - emitY;
     var hClamped = Math.min(1, h * 1.2);
-    sm.position.x = Math.sin(h * 2.8 + t) * 0.25 * hClamped;
-    sm.position.z = Math.cos(h * 2.2 + t * 0.6) * 0.1 * hClamped;
+    sm.position.x = Math.sin(h * 2.8 + t) * 2.5 * hClamped;
+    sm.position.z = Math.cos(h * 2.2 + t * 0.6) * 0.8 * hClamped;
 
     sm.material.rotation += ud.rotSpeed;
 
