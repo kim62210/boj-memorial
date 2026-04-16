@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+<rect width="32" height="32" rx="6" fill="#18181b"/>
+<g transform="translate(16,14)">
+<g opacity="0.85">
+<ellipse cx="0" cy="-6" rx="2" ry="5" fill="#f0ebe0" transform="rotate(0)"/>
+<ellipse cx="0" cy="-6" rx="2" ry="5" fill="#f0ebe0" transform="rotate(30)"/>
+<ellipse cx="0" cy="-6" rx="2" ry="5" fill="#f0ebe0" transform="rotate(60)"/>
+<ellipse cx="0" cy="-6" rx="2" ry="5" fill="#f0ebe0" transform="rotate(90)"/>
+<ellipse cx="0" cy="-6" rx="2" ry="5" fill="#f0ebe0" transform="rotate(120)"/>
+<ellipse cx="0" cy="-6" rx="2" ry="5" fill="#f0ebe0" transform="rotate(150)"/>
+<ellipse cx="0" cy="-6" rx="2" ry="5" fill="#f0ebe0" transform="rotate(180)"/>
+<ellipse cx="0" cy="-6" rx="2" ry="5" fill="#f0ebe0" transform="rotate(210)"/>
+<ellipse cx="0" cy="-6" rx="2" ry="5" fill="#f0ebe0" transform="rotate(240)"/>
+<ellipse cx="0" cy="-6" rx="2" ry="5" fill="#f0ebe0" transform="rotate(270)"/>
+<ellipse cx="0" cy="-6" rx="2" ry="5" fill="#f0ebe0" transform="rotate(300)"/>
+<ellipse cx="0" cy="-6" rx="2" ry="5" fill="#f0ebe0" transform="rotate(330)"/>
+</g>
+<g opacity="0.9">
+<ellipse cx="0" cy="-4" rx="1.8" ry="3.5" fill="#f5f0e8" transform="rotate(15)"/>
+<ellipse cx="0" cy="-4" rx="1.8" ry="3.5" fill="#f5f0e8" transform="rotate(51)"/>
+<ellipse cx="0" cy="-4" rx="1.8" ry="3.5" fill="#f5f0e8" transform="rotate(87)"/>
+<ellipse cx="0" cy="-4" rx="1.8" ry="3.5" fill="#f5f0e8" transform="rotate(123)"/>
+<ellipse cx="0" cy="-4" rx="1.8" ry="3.5" fill="#f5f0e8" transform="rotate(159)"/>
+<ellipse cx="0" cy="-4" rx="1.8" ry="3.5" fill="#f5f0e8" transform="rotate(195)"/>
+<ellipse cx="0" cy="-4" rx="1.8" ry="3.5" fill="#f5f0e8" transform="rotate(231)"/>
+<ellipse cx="0" cy="-4" rx="1.8" ry="3.5" fill="#f5f0e8" transform="rotate(267)"/>
+<ellipse cx="0" cy="-4" rx="1.8" ry="3.5" fill="#f5f0e8" transform="rotate(303)"/>
+<ellipse cx="0" cy="-4" rx="1.8" ry="3.5" fill="#f5f0e8" transform="rotate(339)"/>
+</g>
+<circle cx="0" cy="0" r="2.5" fill="#d4a574"/>
+</g>
+<line x1="16" y1="20" x2="16" y2="29" stroke="#4a7a3a" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BOJ Memorial - 백준 온라인 저지 추모 공간</title>
+<meta name="description" content="Baekjoon Online Judge(www.acmicpc.net) 추모 공간. 2010-2026, 감사했습니다. 헌화와 추모 댓글을 남겨주세요.">
+<meta name="keywords" content="백준,BOJ,Baekjoon,백준 온라인 저지,acmicpc,추모,memorial,알고리즘,코딩,헌화">
+<meta name="author" content="BOJ Memorial">
+<meta name="theme-color" content="#09090b">
+<meta name="color-scheme" content="dark">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://boj-memorial.brian-dev.cloud/">
+<meta property="og:title" content="BOJ Memorial - 백준 온라인 저지 추모 공간">
+<meta property="og:description" content="Baekjoon Online Judge(www.acmicpc.net) 추모 공간. 2010년부터 함께한 백준, 감사했습니다. 헌화와 추모 댓글을 남겨주세요.">
+<meta property="og:image" content="https://boj-memorial.brian-dev.cloud/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="백준 온라인 저지 추모 공간 - R.I.P Baekjoon Online Judge 2010-2026">
+<meta property="og:site_name" content="BOJ Memorial">
+<meta property="og:locale" content="ko_KR">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="BOJ Memorial - 백준 온라인 저지 추모 공간">
+<meta name="twitter:description" content="백준 추모 공간. 헌화와 추모 댓글을 남겨주세요. R.I.P 2010-2026">
+<meta name="twitter:image" content="https://boj-memorial.brian-dev.cloud/og-image.png">
+<meta name="twitter:image:alt" content="백준 온라인 저지 추모 - 국화와 비석">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iIzE4MTgxYiIvPgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNiwxNCkiPgo8ZyBvcGFjaXR5PSIwLjg1Ij4KPGVsbGlwc2UgY3g9IjAiIGN5PSItNiIgcng9IjIiIHJ5PSI1IiBmaWxsPSIjZjBlYmUwIiB0cmFuc2Zvcm09InJvdGF0ZSgwKSIvPgo8ZWxsaXBzZSBjeD0iMCIgY3k9Ii02IiByeD0iMiIgcnk9IjUiIGZpbGw9IiNmMGViZTAiIHRyYW5zZm9ybT0icm90YXRlKDMwKSIvPgo8ZWxsaXBzZSBjeD0iMCIgY3k9Ii02IiByeD0iMiIgcnk9IjUiIGZpbGw9IiNmMGViZTAiIHRyYW5zZm9ybT0icm90YXRlKDYwKSIvPgo8ZWxsaXBzZSBjeD0iMCIgY3k9Ii02IiByeD0iMiIgcnk9IjUiIGZpbGw9IiNmMGViZTAiIHRyYW5zZm9ybT0icm90YXRlKDkwKSIvPgo8ZWxsaXBzZSBjeD0iMCIgY3k9Ii02IiByeD0iMiIgcnk9IjUiIGZpbGw9IiNmMGViZTAiIHRyYW5zZm9ybT0icm90YXRlKDEyMCkiLz4KPGVsbGlwc2UgY3g9IjAiIGN5PSItNiIgcng9IjIiIHJ5PSI1IiBmaWxsPSIjZjBlYmUwIiB0cmFuc2Zvcm09InJvdGF0ZSgxNTApIi8+CjxlbGxpcHNlIGN4PSIwIiBjeT0iLTYiIHJ4PSIyIiByeT0iNSIgZmlsbD0iI2YwZWJlMCIgdHJhbnNmb3JtPSJyb3RhdGUoMTgwKSIvPgo8ZWxsaXBzZSBjeD0iMCIgY3k9Ii02IiByeD0iMiIgcnk9IjUiIGZpbGw9IiNmMGViZTAiIHRyYW5zZm9ybT0icm90YXRlKDIxMCkiLz4KPGVsbGlwc2UgY3g9IjAiIGN5PSItNiIgcng9IjIiIHJ5PSI1IiBmaWxsPSIjZjBlYmUwIiB0cmFuc2Zvcm09InJvdGF0ZSgyNDApIi8+CjxlbGxpcHNlIGN4PSIwIiBjeT0iLTYiIHJ4PSIyIiByeT0iNSIgZmlsbD0iI2YwZWJlMCIgdHJhbnNmb3JtPSJyb3RhdGUoMjcwKSIvPgo8ZWxsaXBzZSBjeD0iMCIgY3k9Ii02IiByeD0iMiIgcnk9IjUiIGZpbGw9IiNmMGViZTAiIHRyYW5zZm9ybT0icm90YXRlKDMwMCkiLz4KPGVsbGlwc2UgY3g9IjAiIGN5PSItNiIgcng9IjIiIHJ5PSI1IiBmaWxsPSIjZjBlYmUwIiB0cmFuc2Zvcm09InJvdGF0ZSgzMzApIi8+CjwvZz4KPGcgb3BhY2l0eT0iMC45Ij4KPGVsbGlwc2UgY3g9IjAiIGN5PSItNCIgcng9IjEuOCIgcnk9IjMuNSIgZmlsbD0iI2Y1ZjBlOCIgdHJhbnNmb3JtPSJyb3RhdGUoMTUpIi8+CjxlbGxpcHNlIGN4PSIwIiBjeT0iLTQiIHJ4PSIxLjgiIHJ5PSIzLjUiIGZpbGw9IiNmNWYwZTgiIHRyYW5zZm9ybT0icm90YXRlKDUxKSIvPgo8ZWxsaXBzZSBjeD0iMCIgY3k9Ii00IiByeD0iMS44IiByeT0iMy41IiBmaWxsPSIjZjVmMGU4IiB0cmFuc2Zvcm09InJvdGF0ZSg4NykiLz4KPGVsbGlwc2UgY3g9IjAiIGN5PSItNCIgcng9IjEuOCIgcnk9IjMuNSIgZmlsbD0iI2Y1ZjBlOCIgdHJhbnNmb3JtPSJyb3RhdGUoMTIzKSIvPgo8ZWxsaXBzZSBjeD0iMCIgY3k9Ii00IiByeD0iMS44IiByeT0iMy41IiBmaWxsPSIjZjVmMGU4IiB0cmFuc2Zvcm09InJvdGF0ZSgxNTkpIi8+CjxlbGxpcHNlIGN4PSIwIiBjeT0iLTQiIHJ4PSIxLjgiIHJ5PSIzLjUiIGZpbGw9IiNmNWYwZTgiIHRyYW5zZm9ybT0icm90YXRlKDE5NSkiLz4KPGVsbGlwc2UgY3g9IjAiIGN5PSItNCIgcng9IjEuOCIgcnk9IjMuNSIgZmlsbD0iI2Y1ZjBlOCIgdHJhbnNmb3JtPSJyb3RhdGUoMjMxKSIvPgo8ZWxsaXBzZSBjeD0iMCIgY3k9Ii00IiByeD0iMS44IiByeT0iMy41IiBmaWxsPSIjZjVmMGU4IiB0cmFuc2Zvcm09InJvdGF0ZSgyNjcpIi8+CjxlbGxpcHNlIGN4PSIwIiBjeT0iLTQiIHJ4PSIxLjgiIHJ5PSIzLjUiIGZpbGw9IiNmNWYwZTgiIHRyYW5zZm9ybT0icm90YXRlKDMwMykiLz4KPGVsbGlwc2UgY3g9IjAiIGN5PSItNCIgcng9IjEuOCIgcnk9IjMuNSIgZmlsbD0iI2Y1ZjBlOCIgdHJhbnNmb3JtPSJyb3RhdGUoMzM5KSIvPgo8L2c+CjxjaXJjbGUgY3g9IjAiIGN5PSIwIiByPSIyLjUiIGZpbGw9IiNkNGE1NzQiLz4KPC9nPgo8bGluZSB4MT0iMTYiIHkxPSIyMCIgeDI9IjE2IiB5Mj0iMjkiIHN0cm9rZT0iIzRhN2EzYSIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4=">
+<link rel="apple-touch-icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&family=Playfair+Display:wght@400;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{
+  background:#09090b;
+  color:#fafafa;
+  font-family:"Inter","Noto Sans KR",sans-serif;
+  overflow:hidden;
+  height:100vh;
+  height:100dvh;
+}
+#three-container{
+  width:100%;
+  height:100vh;
+  height:100dvh;
+  position:relative;
+  overflow:hidden;
+}
+#three-container canvas{
+  display:block;
+  width:100%!important;
+  height:100%!important;
+}
+
+/* Tombstone overlay */
+#tombstone-overlay{
+  position:absolute;
+  top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:5;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+#tombstone-text{
+  margin-top:-18vh;text-align:center;
+}
+#tombstone-text .rip{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(32px,5vw,64px);font-weight:700;
+  color:#d4a574;letter-spacing:8px;
+  text-shadow:0 2px 10px rgba(0,0,0,0.8);margin-bottom:8px;
+}
+#tombstone-text .site-name{
+  font-family:'Inter','Noto Sans KR',sans-serif;
+  font-size:clamp(16px,2.5vw,28px);font-weight:600;
+  color:#e0ddd5;letter-spacing:3px;
+  text-shadow:0 2px 8px rgba(0,0,0,0.8);margin-bottom:4px;
+}
+#tombstone-text .url{
+  font-family:'JetBrains Mono',monospace;
+  font-size:clamp(11px,1.4vw,16px);color:#a1a1aa;
+  text-decoration:line-through;
+  text-shadow:0 1px 6px rgba(0,0,0,0.8);margin-bottom:6px;
+}
+#tombstone-text .years{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(14px,1.8vw,22px);color:#b0aca4;
+  letter-spacing:4px;
+  text-shadow:0 1px 6px rgba(0,0,0,0.8);margin-bottom:12px;
+}
+#tombstone-text .divider{
+  width:60px;height:1px;background:#555;margin:0 auto 12px;
+}
+#tombstone-text .epitaph{
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:clamp(12px,1.5vw,18px);font-style:italic;
+  color:#8a8680;text-shadow:0 1px 6px rgba(0,0,0,0.8);
+}
+
+/* Flower overlay count */
+#flower-overlay{
+  z-index:8;
+  position:absolute;
+  bottom:120px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(9,9,11,0.7);
+  border:1px solid rgba(212,165,116,0.3);
+  border-radius:20px;
+  padding:6px 18px;
+  font-size:14px;
+  color:#d4a574;
+  font-family:"Playfair Display",serif;
+  letter-spacing:0.5px;
+  pointer-events:none;
+  z-index:100;
+  white-space:nowrap;
+}
+
+/* Floating comments */
+.floating-comment{
+  position:fixed;
+  z-index:9000;
+  pointer-events:none;
+  font-size:16px;
+  text-shadow:0 0 4px rgba(0,0,0,0.8),0 0 10px rgba(0,0,0,0.5);
+  white-space:nowrap;
+  font-family:"Noto Sans KR",sans-serif;
+  will-change:transform,opacity;
+  transition:none;
+}
+
+/* Bottom bar - damta.world style */
+#bottom-bar{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  background:rgba(9,9,11,0.95);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  border-top:1px solid #27272a;
+  padding:10px 16px;
+  z-index:8000;
+}
+#bar-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  max-width:960px;
+  margin:0 auto;
+}
+/* BGM section */
+.bar-section{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+}
+.bar-divider{
+  width:1px;height:24px;
+  background:#27272a;flex-shrink:0;
+}
+/* Input section */
+.bar-input-section{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  flex:1;
+  min-width:0;
+}
+.bar-input-row{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  width:100%;
+}
+#nick-display{
+  display:flex;align-items:center;gap:4px;
+  flex-shrink:0;
+}
+#nick-display span{
+  font-size:12px;color:#71717a;
+  max-width:200px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;
+}
+#nick-refresh{
+  background:none;border:none;color:#71717a;
+  cursor:pointer;font-size:14px;padding:2px;
+  line-height:1;transition:color 0.2s;
+}
+#nick-refresh:hover{color:#d4a574}
+#msg-input{
+  flex:1;min-width:0;
+  background:#18181b;
+  border:1px solid #27272a;
+  color:#fafafa;
+  border-radius:6px;
+  padding:8px 10px;
+  font-size:14px;
+  font-family:"Inter","Noto Sans KR",sans-serif;
+  outline:none;
+  transition:border-color 0.2s;
+}
+#msg-input:focus{border-color:#d4a574}
+#submit-btn{
+  background:#d4a574;color:#18181b;
+  border:none;border-radius:6px;
+  padding:8px 14px;font-size:14px;
+  font-weight:700;
+  font-family:"Noto Sans KR",sans-serif;
+  cursor:pointer;white-space:nowrap;
+  transition:background 0.2s,opacity 0.2s;
+  flex-shrink:0;
+}
+#submit-btn:hover{background:#c4956a}
+#submit-btn:disabled{opacity:0.5;cursor:not-allowed}
+
+/* Stats section */
+.bar-stats{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;color:#a1a1aa;
+  flex-shrink:0;white-space:nowrap;
+}
+
+/* Right buttons */
+.bar-right{
+  display:flex;align-items:center;gap:6px;
+  flex-shrink:0;
+}
+.bar-btn{
+  background:none;border:1px solid #27272a;
+  color:#71717a;border-radius:6px;
+  padding:5px 10px;font-size:12px;
+  cursor:pointer;white-space:nowrap;
+  font-family:"Noto Sans KR",sans-serif;
+  transition:color 0.2s,border-color 0.2s;
+}
+.bar-btn:hover{color:#fafafa;border-color:#52525b}
+
+/* BGM controls */
+#bgm-toggle{
+  background:none;border:1px solid #27272a;
+  color:#71717a;border-radius:6px;
+  padding:5px 8px;font-size:12px;
+  cursor:pointer;white-space:nowrap;
+  font-family:"Noto Sans KR",sans-serif;
+  transition:color 0.2s,border-color 0.2s;
+}
+#bgm-toggle:hover{color:#fafafa;border-color:#52525b}
+#bgm-toggle.active{color:#d4a574;border-color:#d4a574}
+#volume-slider{
+  width:50px;height:3px;
+  -webkit-appearance:none;
+  appearance:none;
+  background:#27272a;
+  border-radius:2px;
+  outline:none;
+  cursor:pointer;
+}
+#volume-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:10px;height:10px;
+  border-radius:50%;
+  background:#d4a574;cursor:pointer;
+}
+#volume-slider::-moz-range-thumb{
+  width:10px;height:10px;
+  border-radius:50%;border:none;
+  background:#d4a574;cursor:pointer;
+}
+
+/* Menu dropdown */
+#menu-wrap{position:relative}
+#menu-dropdown{
+  display:none;
+  position:absolute;
+  bottom:calc(100% + 8px);
+  right:0;
+  background:#18181b;
+  border:1px solid #27272a;
+  border-radius:8px;
+  padding:4px;
+  min-width:160px;
+  z-index:9500;
+}
+#menu-dropdown.show{display:block}
+#menu-dropdown button{
+  display:block;width:100%;
+  background:none;border:none;
+  color:#a1a1aa;
+  padding:8px 12px;
+  font-size:13px;text-align:left;
+  cursor:pointer;border-radius:6px;
+  font-family:"Noto Sans KR",sans-serif;
+  transition:background 0.15s,color 0.15s;
+}
+#menu-dropdown button:hover{
+  background:#27272a;color:#fafafa;
+}
+
+/* Modal */
+.modal-overlay{
+  display:none;
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+  z-index:10000;
+  align-items:center;justify-content:center;
+}
+.modal-overlay.show{display:flex}
+.modal-box{
+  background:#18181b;
+  border:1px solid #27272a;
+  border-radius:12px;
+  padding:24px;
+  max-width:440px;
+  width:calc(100% - 32px);
+  max-height:80vh;
+  overflow-y:auto;
+}
+.modal-box h3{
+  font-size:16px;font-weight:700;
+  color:#fafafa;margin-bottom:12px;
+  font-family:"Noto Sans KR",sans-serif;
+}
+.modal-box p{
+  font-size:13px;color:#a1a1aa;
+  line-height:1.7;margin-bottom:12px;
+  font-family:"Noto Sans KR",sans-serif;
+}
+.modal-box textarea{
+  width:100%;height:80px;
+  background:#09090b;
+  border:1px solid #27272a;
+  color:#fafafa;border-radius:6px;
+  padding:8px;font-size:13px;
+  font-family:"Noto Sans KR",sans-serif;
+  outline:none;resize:vertical;
+  margin-bottom:12px;
+}
+.modal-box textarea:focus{border-color:#d4a574}
+.modal-actions{
+  display:flex;gap:8px;justify-content:flex-end;
+}
+.modal-actions button{
+  padding:8px 16px;border-radius:6px;
+  font-size:13px;cursor:pointer;
+  font-family:"Noto Sans KR",sans-serif;
+  transition:background 0.2s;
+}
+.btn-cancel{
+  background:none;border:1px solid #27272a;color:#a1a1aa;
+}
+.btn-cancel:hover{background:#27272a;color:#fafafa}
+.btn-submit{
+  background:#d4a574;color:#18181b;border:none;font-weight:700;
+}
+.btn-submit:hover{background:#c4956a}
+
+/* Privacy modal */
+.privacy-content h4{
+  font-size:14px;font-weight:600;
+  color:#e0ddd5;margin:12px 0 6px;
+}
+.privacy-content ul{
+  list-style:disc;padding-left:20px;
+  margin-bottom:8px;
+}
+.privacy-content li{
+  font-size:13px;color:#a1a1aa;
+  line-height:1.6;
+}
+
+/* Toast */
+#toast{
+  position:fixed;
+  bottom:120px;
+  left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:#18181b;
+  border:1px solid #27272a;
+  color:#a1a1aa;
+  padding:8px 16px;
+  border-radius:6px;
+  font-size:13px;
+  font-family:"JetBrains Mono","Noto Sans KR",monospace;
+  opacity:0;
+  transition:opacity 0.3s,transform 0.3s;
+  z-index:9500;
+  pointer-events:none;
+  white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Mobile */
+@media(max-width:768px){
+  #bottom-bar{padding:8px 10px}
+  #bar-row{
+    flex-wrap:wrap;gap:8px;
+  }
+  .bar-section.bgm-section{order:3;width:100%}
+  .bar-divider{display:none}
+  .bar-input-section{order:1;width:100%;flex:none}
+  .bar-stats{order:2;font-size:11px}
+  .bar-right{order:2;margin-left:auto}
+  #msg-input{font-size:16px}
+  #flower-overlay{
+  z-index:8;font-size:12px;padding:5px 14px;bottom:175px}
+  #submit-btn{padding:8px 12px;font-size:13px}
+  #volume-slider{width:40px}
+  #nick-display span{max-width:70px;font-size:12px}
+}
+</style>
+</head>
+<body>
+<div id="enter-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;">
+  <div style="text-align:center;pointer-events:none;">
+    <div style="font-size:48px;margin-bottom:16px;">&#x1F3B5;</div>
+    <div style="color:#fafafa;font-size:18px;font-weight:600;font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;">Baekjoon Online Judge 추모 공간</div>
+    <div style="color:#a1a1aa;font-size:14px;font-family:'Noto Sans KR',sans-serif;">화면을 터치하여 입장하세요</div>
+  </div>
+</div>
+
+
+<div id="three-container">
+  <div id="tombstone-overlay">
+    <div id="tombstone-text">
+      <div class="rip">R.I.P</div>
+      <div class="site-name">Baekjoon Online Judge</div>
+      <div class="url">www.acmicpc.net</div>
+      <div class="years">2010 &#8212; 2026</div>
+      <div class="divider"></div>
+      <div class="epitaph">&#8220;맞았습니다!!&#8221; 를 더 이상 볼 수 없습니다</div>
+    </div>
+  </div>
+  <div id="flower-overlay"></div>
+</div>
+
+<!-- Bottom bar -->
+<div id="bottom-bar">
+  <div id="bar-row">
+    <div class="bar-section bgm-section">
+      <button id="bgm-toggle" type="button" aria-label="BGM 토글">BGM 켜기</button>
+      <input id="volume-slider" type="range" min="0" max="100" value="100" aria-label="볼륨">
+    </div>
+    <div class="bar-divider"></div>
+    <div class="bar-input-section">
+      <div id="nick-display">
+        <span id="nick-name"></span>
+      </div>
+      <div class="bar-input-row">
+        <input id="msg-input" type="text" placeholder="추모의 말을 남겨주세요..." maxlength="500" autocomplete="off">
+        <button id="submit-btn" type="button">헌화</button>
+      </div>
+    </div>
+    <div class="bar-divider"></div>
+    <div class="bar-stats">
+      <span id="stat-online"></span>
+      <span id="stat-flowers"></span>
+    </div>
+    <div class="bar-divider"></div>
+    <div class="bar-right">
+      <button class="bar-btn" id="report-btn" type="button">신고</button>
+      <div id="menu-wrap">
+        <button class="bar-btn" id="menu-btn" type="button">&#8943;</button>
+        <div id="menu-dropdown">
+          <button id="suggest-menu-btn" type="button">기능 제안</button>
+          <button id="share-menu-btn" type="button" >링크 공유</button>
+          <button id="privacy-btn" type="button">개인정보처리방침</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Report modal -->
+<div class="modal-overlay" id="report-modal">
+  <div class="modal-box" style="max-width:420px;">
+    <h3 style="margin-bottom:16px;">신고하기</h3>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label style="font-size:12px;color:#a1a1aa;display:block;margin-bottom:4px;">신고 대상 닉네임</label>
+        <input type="text" id="report-nickname" placeholder="닉네임을 입력하세요" style="width:100%;padding:8px 12px;background:#09090b;border:1px solid #3f3f46;border-radius:6px;color:#fafafa;font-size:13px;font-family:inherit;">
+      </div>
+      <div>
+        <label style="font-size:12px;color:#a1a1aa;display:block;margin-bottom:4px;">신고 사유</label>
+        <div id="report-categories" style="display:flex;flex-wrap:wrap;gap:6px;">
+          <button type="button" class="report-cat" data-cat="욕설/비방" style="padding:5px 12px;background:#18181b;border:1px solid #3f3f46;border-radius:20px;color:#a1a1aa;font-size:12px;cursor:pointer;">욕설/비방</button>
+          <button type="button" class="report-cat" data-cat="도배" style="padding:5px 12px;background:#18181b;border:1px solid #3f3f46;border-radius:20px;color:#a1a1aa;font-size:12px;cursor:pointer;">도배</button>
+          <button type="button" class="report-cat" data-cat="광고/홍보" style="padding:5px 12px;background:#18181b;border:1px solid #3f3f46;border-radius:20px;color:#a1a1aa;font-size:12px;cursor:pointer;">광고/홍보</button>
+          <button type="button" class="report-cat" data-cat="음란물" style="padding:5px 12px;background:#18181b;border:1px solid #3f3f46;border-radius:20px;color:#a1a1aa;font-size:12px;cursor:pointer;">음란물</button>
+          <button type="button" class="report-cat" data-cat="개인정보 노출" style="padding:5px 12px;background:#18181b;border:1px solid #3f3f46;border-radius:20px;color:#a1a1aa;font-size:12px;cursor:pointer;">개인정보 노출</button>
+          <button type="button" class="report-cat" data-cat="기타" style="padding:5px 12px;background:#18181b;border:1px solid #3f3f46;border-radius:20px;color:#a1a1aa;font-size:12px;cursor:pointer;">기타</button>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:12px;color:#a1a1aa;display:block;margin-bottom:4px;">상세 사유 (선택)</label>
+        <textarea id="report-reason" rows="2" placeholder="상세 내용을 적어주세요..." style="width:100%;padding:8px 12px;background:#09090b;border:1px solid #3f3f46;border-radius:6px;color:#fafafa;font-size:13px;font-family:inherit;resize:none;"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn-cancel" id="report-cancel" type="button">취소</button>
+      <button id="report-submit" type="button" style="padding:6px 16px;background:#d4a574;color:#09090b;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;">신고 접수</button>
+    </div>
+  </div>
+</div>
+
+<!-- Privacy modal -->
+<div class="modal-overlay" id="privacy-modal">
+  <div class="modal-box" style="max-width:640px;max-height:80vh;overflow-y:auto;">
+    <h3>개인정보처리방침</h3>
+    <div class="privacy-content" style="text-align:left;">
+      <p style="color:#a1a1aa;font-size:13px;margin-bottom:16px;">boj-memorial.brian-dev.cloud(이하 &ldquo;서비스&rdquo;)는 이용자의 개인정보를 소중히 여기며, &laquo;개인정보 보호법&raquo; 제30조에 따라 다음과 같이 개인정보처리방침을 수립&middot;공개합니다.</p>
+
+      <h4>1. 개인정보 처리목적 및 수집 항목</h4>
+      <table style="width:100%;border-collapse:collapse;margin:8px 0 16px;font-size:12px;">
+        <thead><tr style="border-bottom:1px solid #3f3f46;">
+          <th style="padding:6px 8px;text-align:left;color:#d4a574;">처리 목적</th>
+          <th style="padding:6px 8px;text-align:left;color:#d4a574;">수집 항목</th>
+          <th style="padding:6px 8px;text-align:left;color:#d4a574;">수집 방법</th>
+        </tr></thead>
+        <tbody style="color:#a1a1aa;">
+          <tr style="border-bottom:1px solid #27272a;">
+            <td style="padding:6px 8px;">서비스 이용 환경 식별 및 어뷰징 방지</td>
+            <td style="padding:6px 8px;">IP 주소</td>
+            <td style="padding:6px 8px;">자동 수집</td>
+          </tr>
+          <tr style="border-bottom:1px solid #27272a;">
+            <td style="padding:6px 8px;">추모 서비스 제공 및 이용자 구분</td>
+            <td style="padding:6px 8px;">닉네임 (자동 생성)</td>
+            <td style="padding:6px 8px;">서비스 접속 시 자동 생성</td>
+          </tr>
+          <tr style="border-bottom:1px solid #27272a;">
+            <td style="padding:6px 8px;">신고 접수 및 처리, 분쟁 대응</td>
+            <td style="padding:6px 8px;">신고된 메시지, 신고자&middot;피신고자 IP 주소</td>
+            <td style="padding:6px 8px;">자동 수집 + 신고 기능</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:12px;color:#71717a;margin-bottom:16px;">본 서비스는 회원가입 절차가 없으며, 위 항목 외 민감정보(주민등록번호, 신용정보 등)는 수집하지 않습니다.</p>
+
+      <h4>2. 개인정보의 보유 및 이용 기간</h4>
+      <p style="font-size:12px;color:#a1a1aa;margin-bottom:4px;">수집된 개인정보는 목적이 달성되면 즉시 파기합니다. 단, 아래의 기간 동안은 보관합니다.</p>
+      <table style="width:100%;border-collapse:collapse;margin:8px 0 16px;font-size:12px;">
+        <thead><tr style="border-bottom:1px solid #3f3f46;">
+          <th style="padding:6px 8px;text-align:left;color:#d4a574;">수집 항목</th>
+          <th style="padding:6px 8px;text-align:left;color:#d4a574;">보유 기간</th>
+          <th style="padding:6px 8px;text-align:left;color:#d4a574;">근거</th>
+        </tr></thead>
+        <tbody style="color:#a1a1aa;">
+          <tr style="border-bottom:1px solid #27272a;">
+            <td style="padding:6px 8px;">IP 주소, 닉네임, 메시지</td>
+            <td style="padding:6px 8px;">수집일로부터 1년</td>
+            <td style="padding:6px 8px;">서비스 운영 및 분쟁 대비</td>
+          </tr>
+          <tr style="border-bottom:1px solid #27272a;">
+            <td style="padding:6px 8px;">신고된 메시지 및 관련 IP</td>
+            <td style="padding:6px 8px;">신고 접수일로부터 3년</td>
+            <td style="padding:6px 8px;">민사 분쟁 소멸시효(민법 &sect;766) 대비</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>3. 개인정보의 제3자 제공</h4>
+      <p style="font-size:12px;color:#a1a1aa;margin-bottom:4px;">서비스는 이용자의 개인정보를 원칙적으로 제3자에게 제공하지 않습니다. 단, 다음의 경우에는 예외로 합니다.</p>
+      <ul>
+        <li>이용자가 사전에 동의한 경우</li>
+        <li>법령에 의거하거나 수사기관의 적법한 요청이 있는 경우</li>
+      </ul>
+
+      <h4>4. 개인정보 처리의 위탁</h4>
+      <p style="font-size:12px;color:#a1a1aa;margin-bottom:16px;">서비스는 개인정보 처리 업무를 외부에 위탁하지 않습니다.</p>
+
+      <h4>5. 정보주체의 권리 및 행사 방법</h4>
+      <p style="font-size:12px;color:#a1a1aa;margin-bottom:16px;">이용자는 개인정보 열람&middot;정정&middot;삭제&middot;처리정지를 서비스 내 신고/기능 제안 기능을 통해 요청할 수 있으며, 접수 후 10일 이내 처리합니다.</p>
+
+      <h4>6. 개인정보의 파기 절차 및 방법</h4>
+      <p style="font-size:12px;color:#a1a1aa;margin-bottom:4px;">보유 기간이 경과하거나 처리 목적이 달성된 경우 즉시 파기합니다.</p>
+      <ul>
+        <li><strong>전자적 파일</strong>: 복구 불가능한 방법으로 영구 삭제</li>
+        <li><strong>기록&middot;출력물</strong>: 해당 없음 (종이 문서 미사용)</li>
+      </ul>
+
+      <h4>7. 개인정보 자동 수집 장치의 설치&middot;운영 및 거부</h4>
+      <p style="font-size:12px;color:#a1a1aa;margin-bottom:16px;">서비스는 이용자 식별 및 어뷰징 방지를 위해 <strong>IP 주소</strong>를 자동으로 수집합니다. 별도의 쿠키 또는 브라우저 핑거프린트는 수집하지 않습니다.</p>
+
+      <h4>8. 개인정보 보호책임자</h4>
+      <table style="width:100%;border-collapse:collapse;margin:8px 0 16px;font-size:12px;">
+        <tbody style="color:#a1a1aa;">
+          <tr style="border-bottom:1px solid #27272a;">
+            <td style="padding:6px 8px;color:#d4a574;">책임자</td>
+            <td style="padding:6px 8px;">boj-memorial 운영자</td>
+          </tr>
+          
+          <tr style="border-bottom:1px solid #27272a;">
+            <td style="padding:6px 8px;color:#d4a574;">처리 기간</td>
+            <td style="padding:6px 8px;">접수 후 10일 이내</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:12px;color:#71717a;margin-bottom:4px;">개인정보 관련 불만 및 피해 구제는 아래 기관에 문의하실 수 있습니다.</p>
+      <ul style="font-size:11px;color:#71717a;">
+        <li>개인정보 침해신고센터: privacy.kisa.or.kr / 국번없이 118</li>
+        <li>개인정보 분쟁조정위원회: www.kopico.go.kr / 1833-6972</li>
+        <li>대검찰청 사이버수사과: www.spo.go.kr / 국번없이 1301</li>
+        <li>경찰청 사이버수사국: ecrm.police.go.kr / 국번없이 182</li>
+      </ul>
+
+      <h4>9. 개인정보처리방침의 변경</h4>
+      <p style="font-size:12px;color:#a1a1aa;">본 방침은 <strong>2026년 4월 15일</strong>부터 시행됩니다. 내용이 변경될 경우 서비스 내 공지 또는 본 페이지를 통해 안내합니다.</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="privacy-close" type="button">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="suggest-modal">
+  <div class="modal-box" style="max-width:420px;">
+    <h3 style="margin-bottom:16px;">기능 제안</h3>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label style="font-size:12px;color:#a1a1aa;display:block;margin-bottom:4px;">카테고리</label>
+        <div id="suggest-categories" style="display:flex;flex-wrap:wrap;gap:6px;">
+          <button type="button" class="suggest-cat" data-cat="UI/디자인" style="padding:5px 12px;background:#18181b;border:1px solid #3f3f46;border-radius:20px;color:#a1a1aa;font-size:12px;cursor:pointer;">UI/디자인</button>
+          <button type="button" class="suggest-cat" data-cat="기능 추가" style="padding:5px 12px;background:#18181b;border:1px solid #3f3f46;border-radius:20px;color:#a1a1aa;font-size:12px;cursor:pointer;">기능 추가</button>
+          <button type="button" class="suggest-cat" data-cat="버그 제보" style="padding:5px 12px;background:#18181b;border:1px solid #3f3f46;border-radius:20px;color:#a1a1aa;font-size:12px;cursor:pointer;">버그 제보</button>
+          <button type="button" class="suggest-cat" data-cat="기타" style="padding:5px 12px;background:#18181b;border:1px solid #3f3f46;border-radius:20px;color:#a1a1aa;font-size:12px;cursor:pointer;">기타</button>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:12px;color:#a1a1aa;display:block;margin-bottom:4px;">제안 내용</label>
+        <textarea id="suggest-reason" rows="3" placeholder="제안할 내용을 적어주세요..." style="width:100%;padding:8px 12px;background:#09090b;border:1px solid #3f3f46;border-radius:6px;color:#fafafa;font-size:13px;font-family:inherit;resize:none;"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn-cancel" id="suggest-cancel" type="button">취소</button>
+      <button id="suggest-submit" type="button" style="padding:6px 16px;background:#d4a574;color:#09090b;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;">제안하기</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script type="importmap">
+{
+  "imports":{
+    "three":"https://unpkg.com/three@0.170.0/build/three.module.js"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from "three";
+
+
+/* ===== Device Token ===== */
+function getDeviceToken() {
+  var token = localStorage.getItem('boj_device_token');
+  if (!token) {
+    token = 'dt_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem('boj_device_token', token);
+  }
+  return token;
+}
+var deviceToken = getDeviceToken();
+
+/* ===== Rate Limit Modal ===== */
+function showRateLimitModal(seconds) {
+  var existing = document.getElementById('ratelimit-modal');
+  if (existing) existing.remove();
+  var modal = document.createElement('div');
+  modal.id = 'ratelimit-modal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = '<div style="background:#18181b;border:1px solid #27272a;border-radius:12px;padding:24px 32px;text-align:center;max-width:320px;">' +
+    '<div style="font-size:24px;margin-bottom:12px;">\u23F3</div>' +
+    '<div style="color:#fafafa;font-size:16px;font-weight:600;margin-bottom:8px;">\uB108\uBB34 \uBE60\uB978 \uC694\uCCAD\uC785\uB2C8\uB2E4</div>' +
+    '<div style="color:#a1a1aa;font-size:13px;margin-bottom:16px;">' + seconds + '\uCD08 \uD6C4\uC5D0 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694</div>' +
+    '<button onclick="this.closest(\'#ratelimit-modal\').remove()" style="padding:8px 20px;background:#d4a574;color:#09090b;border:none;border-radius:6px;font-size:13px;cursor:pointer;">\uD655\uC778</button>' +
+    '</div>';
+  document.body.appendChild(modal);
+  setTimeout(function(){ var m = document.getElementById('ratelimit-modal'); if(m) m.remove(); }, seconds * 1000);
+}
+
+/* ===== Random Nickname Generator ===== */
+var adjectives = [
+  '슬픈','그리운','외로운','따뜻한','차가운','고요한','잔잔한','아련한',
+  '담담한','쓸쓸한','포근한','흐린','맑은','깊은','넓은','작은',
+  '큰','밝은','어두운','붉은','푸른','하얀','검은','노란',
+  '젊은','늙은','빠른','느린','강한','약한','먼','가까운',
+  '높은','낮은','긴','짧은'
+];
+var nouns = [
+  '개발자','알고리즘','코더','디버거','컴파일러','반복문','재귀','스택',
+  '큐','트리','그래프','배열','포인터','함수','변수','상수',
+  '클래스','객체','메서드','모듈','패키지','서버','클라이언트','데이터',
+  '쿼리','인덱스','커밋','브랜치','버그','패치','릴리즈','테스트'
+];
+var currentNickname = '';
+function generateNickname(){
+  var adj = adjectives[Math.floor(Math.random()*adjectives.length)];
+  var noun = nouns[Math.floor(Math.random()*nouns.length)];
+  var num = String(Math.floor(Math.random()*100)).padStart(2,'0');
+  return adj+' '+noun+num;
+}
+function refreshNickname(){
+  currentNickname = generateNickname();
+  document.getElementById('nick-name').textContent = currentNickname;
+}
+refreshNickname();
+
+
+/* ===== BGM - Sad Piano Melody via Web Audio API ===== */
+var bgmPlaying = false;
+var bgmAudio = null;
+var bgmAudioCtx = null;
+var bgmGainNode = null;
+var bgmOscillators = [];
+var bgmUsingWebAudio = false;
+var bgmMelodyTimeout = null;
+var volumeSlider = document.getElementById('volume-slider');
+var bgmToggle = document.getElementById('bgm-toggle');
+
+function createWebAudioBGM(){
+  bgmAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(bgmAudioCtx.state === 'suspended') bgmAudioCtx.resume();
+  bgmGainNode = bgmAudioCtx.createGain();
+  bgmGainNode.gain.value = volumeSlider.value / 100;
+  bgmGainNode.connect(bgmAudioCtx.destination);
+
+  /* Reverb effect using convolver */
+  var convolver = bgmAudioCtx.createConvolver();
+  var rate = bgmAudioCtx.sampleRate;
+  var reverbLen = rate * 2.5;
+  var impulse = bgmAudioCtx.createBuffer(2, reverbLen, rate);
+  for(var ch=0; ch<2; ch++){
+    var d = impulse.getChannelData(ch);
+    for(var i=0; i<reverbLen; i++){
+      d[i] = (Math.random()*2-1) * Math.pow(1 - i/reverbLen, 2.5);
+    }
+  }
+  convolver.buffer = impulse;
+  var reverbGain = bgmAudioCtx.createGain();
+  reverbGain.gain.value = 0.5;
+  convolver.connect(reverbGain);
+  reverbGain.connect(bgmGainNode);
+
+  /* Soft pad for warmth */
+  var pad = bgmAudioCtx.createOscillator();
+  pad.type = 'sine';
+  pad.frequency.value = 130.81; /* C3 */
+  var padGain = bgmAudioCtx.createGain();
+  padGain.gain.value = 0.15;
+  pad.connect(padGain);
+  padGain.connect(bgmGainNode);
+  pad.start();
+  bgmOscillators.push({osc:pad,gain:padGain});
+
+  /* Piano note function with proper ADSR envelope */
+  function playPianoNote(freq, startTime, duration, velocity){
+    if(!bgmAudioCtx) return;
+    var vel = velocity || 0.25;
+    /* Fundamental */
+    var osc1 = bgmAudioCtx.createOscillator();
+    osc1.type = 'triangle';
+    osc1.frequency.value = freq;
+    /* Slight detune for warmth */
+    var osc2 = bgmAudioCtx.createOscillator();
+    osc2.type = 'sine';
+    osc2.frequency.value = freq * 2.01;
+    var osc3 = bgmAudioCtx.createOscillator();
+    osc3.type = 'sine';
+    osc3.frequency.value = freq * 3;
+
+    var noteGain = bgmAudioCtx.createGain();
+    noteGain.gain.setValueAtTime(0, startTime);
+    noteGain.gain.linearRampToValueAtTime(vel, startTime + 0.01);
+    noteGain.gain.setValueAtTime(vel * 0.8, startTime + 0.05);
+    noteGain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+    var harmGain = bgmAudioCtx.createGain();
+    harmGain.gain.value = 0.3;
+
+    var harm3Gain = bgmAudioCtx.createGain();
+    harm3Gain.gain.value = 0.12;
+
+    osc1.connect(noteGain);
+    osc2.connect(harmGain);
+    harmGain.connect(noteGain);
+    osc3.connect(harm3Gain);
+    harm3Gain.connect(noteGain);
+
+    noteGain.connect(bgmGainNode);
+    noteGain.connect(convolver);
+
+    osc1.start(startTime);
+    osc2.start(startTime);
+    osc3.start(startTime);
+    osc1.stop(startTime + duration + 0.1);
+    osc2.stop(startTime + duration + 0.1);
+    osc3.stop(startTime + duration + 0.1);
+  }
+
+  /* Sad piano melody - Am key, repeating phrases */
+  function playMelodyLoop(){
+    if(!bgmPlaying || !bgmAudioCtx) return;
+    var t = bgmAudioCtx.currentTime + 0.1;
+    var bpm = 55;
+    var beat = 60 / bpm;
+
+    /* Phrase patterns: [note_freq, beat_offset, duration_beats, velocity] */
+    /* Am - F - C - G progression with melody */
+    var phrases = [
+      /* Phrase 1: Am - gentle ascending */
+      [220.00, 0, 3, 0.25],     /* A3 */
+      [261.63, 1, 2.5, 0.22],   /* C4 */
+      [329.63, 2.5, 3, 0.28],   /* E4 */
+      [293.66, 4, 2, 0.20],     /* D4 */
+      [261.63, 5.5, 3, 0.25],   /* C4 */
+
+      /* Phrase 2: F - descending */
+      [349.23, 8, 3, 0.28],     /* F4 */
+      [329.63, 9.5, 2, 0.22],   /* E4 */
+      [293.66, 11, 3, 0.25],    /* D4 */
+      [261.63, 13, 2, 0.20],    /* C4 */
+
+      /* Phrase 3: C - hopeful then falling */
+      [329.63, 16, 2.5, 0.25],  /* E4 */
+      [392.00, 17.5, 3, 0.30],  /* G4 */
+      [349.23, 19.5, 2, 0.22],  /* F4 */
+      [329.63, 21, 3, 0.25],    /* E4 */
+
+      /* Phrase 4: G - resolution */
+      [293.66, 24, 2, 0.22],    /* D4 */
+      [246.94, 25.5, 3, 0.25],  /* B3 */
+      [220.00, 28, 4, 0.28],    /* A3 - long hold */
+
+      /* Bass notes (lower, softer) */
+      [110.00, 0, 6, 0.15],     /* A2 */
+      [87.31, 8, 6, 0.15],      /* F2 */
+      [130.81, 16, 6, 0.15],    /* C3 */
+      [98.00, 24, 6, 0.15],     /* G2 */
+    ];
+
+    for(var i = 0; i < phrases.length; i++){
+      var p = phrases[i];
+      playPianoNote(p[0], t + p[1] * beat, p[2] * beat, p[3]);
+    }
+
+    /* Loop after full phrase (~32 beats) */
+    var loopDuration = 32 * beat * 1000;
+    bgmMelodyTimeout = setTimeout(playMelodyLoop, loopDuration);
+  }
+
+  playMelodyLoop();
+  bgmUsingWebAudio = true;
+}
+
+function tryPlayCDNAudio(){
+  /* Skip CDN, go straight to Web Audio piano */
+  createWebAudioBGM();
+}
+
+function startBGM(){
+  createWebAudioBGM();
+}
+
+function stopBGM(){
+  if(bgmAudio){
+    bgmAudio.pause();
+    bgmAudio.currentTime = 0;
+    bgmAudio = null;
+  }
+  if(bgmAudioCtx){
+    bgmOscillators.forEach(function(o){ try{o.osc.stop()}catch(e){} });
+    bgmOscillators = [];
+    bgmAudioCtx.close();
+    bgmAudioCtx = null;
+    bgmGainNode = null;
+  }
+  bgmUsingWebAudio = false;
+}
+
+bgmToggle.addEventListener('click', function(){
+  if(bgmPlaying){
+    bgmPlaying = false;
+    stopBGM();
+    bgmToggle.textContent = 'BGM 켜기';
+    bgmToggle.classList.remove('active');
+  } else {
+    bgmPlaying = true;
+    startBGM();
+    bgmToggle.textContent = 'BGM 끄기';
+    bgmToggle.classList.add('active');
+  }
+});
+
+volumeSlider.addEventListener('input', function(){
+  var vol = volumeSlider.value / 100;
+  if(bgmAudio){
+    bgmAudio.volume = vol * 0.5;
+  }
+  if(bgmGainNode){
+    bgmGainNode.gain.value = vol;
+  }
+});
+
+/* ===== Enter Overlay + BGM Autoplay ===== */
+(function(){
+  var overlay = document.getElementById('enter-overlay');
+  var entered = false;
+  function enterSite(e){
+    if(entered) return;
+    entered = true;
+    if(e) e.preventDefault();
+    overlay.style.transition = 'opacity 0.5s';
+    overlay.style.opacity = '0';
+    setTimeout(function(){ overlay.remove(); }, 500);
+    bgmPlaying = true;
+    startBGM();
+    bgmToggle.textContent = 'BGM 끄기';
+    bgmToggle.classList.add('active');
+  }
+  overlay.addEventListener('click', enterSite);
+})();
+
+/* ===== Toast ===== */
+var toastEl = document.getElementById('toast');
+var toastTimer = null;
+function showToast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2500);
+}
+
+/* ===== Report Modal ===== */
+var reportModal = document.getElementById('report-modal');
+var reportBtn = document.getElementById('report-btn');
+var reportCancel = document.getElementById('report-cancel');
+var reportSubmit = document.getElementById('report-submit');
+var reportReason = document.getElementById('report-reason');
+
+reportBtn.addEventListener('click', function(){
+  reportModal.classList.add('show');
+  if(reportReason) reportReason.value = '';
+  var rn = document.getElementById('report-nickname');
+  if(rn) rn.value = '';
+  document.querySelectorAll('.report-cat').forEach(function(b){b.classList.remove('selected');b.style.borderColor='#3f3f46';b.style.color='#a1a1aa';});
+});
+reportCancel.addEventListener('click', function(){
+  reportModal.classList.remove('show');
+});
+reportModal.addEventListener('click', function(e){
+  if(e.target === reportModal) reportModal.classList.remove('show');
+});
+
+/* ===== Privacy Modal ===== */
+var privacyModal = document.getElementById('privacy-modal');
+var privacyBtn = document.getElementById('privacy-btn');
+var privacyClose = document.getElementById('privacy-close');
+
+privacyBtn.addEventListener('click', function(){
+  privacyModal.classList.add('show');
+  document.getElementById('menu-dropdown').classList.remove('show');
+});
+privacyClose.addEventListener('click', function(){
+  privacyModal.classList.remove('show');
+});
+privacyModal.addEventListener('click', function(e){
+  if(e.target === privacyModal) privacyModal.classList.remove('show');
+});
+
+/* ===== Menu dropdown ===== */
+var menuBtn = document.getElementById('menu-btn');
+var menuDropdown = document.getElementById('menu-dropdown');
+menuBtn.addEventListener('click', function(e){
+  e.stopPropagation();
+  menuDropdown.classList.toggle('show');
+});
+document.addEventListener('click', function(){
+  menuDropdown.classList.remove('show');
+});
+
+/* ===== Three.js Scene ===== */
+var container = document.getElementById("three-container");
+var scene = new THREE.Scene();
+
+/* Fog for depth */
+scene.fog = new THREE.FogExp2(0x09090b, 0.08);
+
+var camera = new THREE.PerspectiveCamera(
+  40,
+  container.clientWidth / container.clientHeight,
+  0.1,
+  100
+);
+camera.position.set(0, 3.5, 8.0);
+camera.lookAt(0, 0.0, 1.0);
+
+var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+container.appendChild(renderer.domElement);
+
+/* Lighting */
+var ambient = new THREE.AmbientLight(0xffe8d0, 0.4);
+scene.add(ambient);
+
+var dirLight = new THREE.DirectionalLight(0xfff5e8, 0.8);
+dirLight.position.set(-3, 5, 4);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(1024, 1024);
+dirLight.shadow.camera.near = 0.5;
+dirLight.shadow.camera.far = 15;
+dirLight.shadow.camera.left = -4;
+dirLight.shadow.camera.right = 4;
+dirLight.shadow.camera.top = 5;
+dirLight.shadow.camera.bottom = -2;
+scene.add(dirLight);
+
+/* Candle lights */
+var candleL = new THREE.PointLight(0xff9933, 0.6, 4);
+candleL.position.set(-1.4, 0.6, 0.8);
+scene.add(candleL);
+var candleR = new THREE.PointLight(0xff9933, 0.6, 4);
+candleR.position.set(1.4, 0.6, 0.8);
+scene.add(candleR);
+
+/* ===== Candle flame visuals ===== */
+var flameMat = new THREE.MeshBasicMaterial({color:0xff8833,transparent:true,opacity:0.8});
+var flameGeoL = new THREE.ConeGeometry(0.03, 0.1, 6);
+var flameMeshL = new THREE.Mesh(flameGeoL, flameMat);
+flameMeshL.position.set(-1.4, 0.55, 0.8);
+scene.add(flameMeshL);
+var flameGeoR = new THREE.ConeGeometry(0.03, 0.1, 6);
+var flameMeshR = new THREE.Mesh(flameGeoR, flameMat);
+flameMeshR.position.set(1.4, 0.55, 0.8);
+scene.add(flameMeshR);
+/* Candle body */
+var candleBodyMat = new THREE.MeshStandardMaterial({color:0xf5e6d3,roughness:0.9});
+var candleBodyGeo = new THREE.CylinderGeometry(0.04,0.04,0.25,8);
+var candleBodyL = new THREE.Mesh(candleBodyGeo, candleBodyMat);
+candleBodyL.position.set(-1.4, 0.38, 0.8);
+scene.add(candleBodyL);
+var candleBodyR = new THREE.Mesh(candleBodyGeo, candleBodyMat);
+candleBodyR.position.set(1.4, 0.38, 0.8);
+scene.add(candleBodyR);
+
+/* ===== Floating particles (dust motes / fireflies) ===== */
+var particles = [];
+var particleGeo = new THREE.SphereGeometry(0.01, 4, 4);
+var particleMat = new THREE.MeshBasicMaterial({color:0xffcc88,transparent:true,opacity:0.6});
+for(var pi=0; pi<30; pi++){
+  var pMesh = new THREE.Mesh(particleGeo, particleMat.clone());
+  pMesh.position.set(
+    (Math.random()-0.5)*6,
+    -0.5 + Math.random()*5,
+    (Math.random()-0.5)*4 + 1
+  );
+  pMesh.userData = {
+    speed: 0.002 + Math.random()*0.004,
+    driftX: (Math.random()-0.5)*0.003,
+    driftZ: (Math.random()-0.5)*0.002,
+    baseOpacity: 0.3 + Math.random()*0.4,
+    phase: Math.random()*Math.PI*2
+  };
+  scene.add(pMesh);
+  particles.push(pMesh);
+}
+
+/* Tombstone shape */
+var shape = new THREE.Shape();
+var W = 1.0;
+var H = 2.8;
+var R = 1.0;
+shape.moveTo(-W, 0);
+shape.lineTo(-W, H - R);
+shape.quadraticCurveTo(-W, H, -W + R * 0.3, H);
+shape.lineTo(0, H + 0.15);
+shape.lineTo(W - R * 0.3, H);
+shape.quadraticCurveTo(W, H, W, H - R);
+shape.lineTo(W, 0);
+shape.lineTo(-W, 0);
+
+var extrudeSettings = {
+  depth: 0.3,
+  bevelEnabled: true,
+  bevelThickness: 0.03,
+  bevelSize: 0.03,
+  bevelSegments: 3,
+};
+var tombGeo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+var tombMat = new THREE.MeshStandardMaterial({
+  color: 0x7a7a7a,
+  roughness: 0.92,
+  metalness: 0.08,
+});
+var tombstone = new THREE.Mesh(tombGeo, tombMat);
+tombstone.castShadow = true;
+tombstone.receiveShadow = true;
+tombstone.position.set(0, -0.5, 0);
+scene.add(tombstone);
+
+/* Base slab */
+var baseGeo = new THREE.BoxGeometry(2.6, 0.2, 0.6);
+var baseMat = new THREE.MeshStandardMaterial({
+  color: 0x6a6a6a,
+  roughness: 0.95,
+  metalness: 0.05,
+});
+var baseSlab = new THREE.Mesh(baseGeo, baseMat);
+baseSlab.position.set(0, -0.6, 0.15);
+baseSlab.castShadow = true;
+baseSlab.receiveShadow = true;
+scene.add(baseSlab);
+
+/* Portrait */
+var texLoader = new THREE.TextureLoader();
+var portraitTex = texLoader.load("/boj-portrait.png");
+var portraitGeo = new THREE.PlaneGeometry(1.3, 0.85);
+var portraitMat = new THREE.MeshStandardMaterial({
+  map: portraitTex,
+  roughness: 0.5,
+  metalness: 0.0,
+});
+var portrait = new THREE.Mesh(portraitGeo, portraitMat);
+portrait.position.set(0, 1.35, 0.35);
+scene.add(portrait);
+
+/* Portrait frame */
+function makeFrameBar(w, h, d) {
+  var g = new THREE.BoxGeometry(w, h, d);
+  var m = new THREE.MeshStandardMaterial({
+    color: 0x3a2a1a,
+    roughness: 0.7,
+    metalness: 0.15,
+  });
+  return new THREE.Mesh(g, m);
+}
+var frameThick = 0.04;
+var frameDepth = 0.06;
+var fTop = makeFrameBar(1.3 + frameThick * 2, frameThick, frameDepth);
+fTop.position.set(0, 1.35 + 0.425 + frameThick / 2, 0.36);
+scene.add(fTop);
+var fBot = makeFrameBar(1.3 + frameThick * 2, frameThick, frameDepth);
+fBot.position.set(0, 1.35 - 0.425 - frameThick / 2, 0.36);
+scene.add(fBot);
+var fLeft = makeFrameBar(frameThick, 0.85, frameDepth);
+fLeft.position.set(-0.65 - frameThick / 2, 1.35, 0.36);
+scene.add(fLeft);
+var fRight = makeFrameBar(frameThick, 0.85, frameDepth);
+fRight.position.set(0.65 + frameThick / 2, 1.35, 0.36);
+scene.add(fRight);
+
+/* Black ribbon - inverted V from top-center to 25% down each side */
+var ribbonMat = new THREE.MeshStandardMaterial({
+  color: 0x111111,
+  roughness: 0.5,
+  side: THREE.DoubleSide,
+});
+var ribbonGeoL = new THREE.PlaneGeometry(0.045, 0.684);
+var ribbonL = new THREE.Mesh(ribbonGeoL, ribbonMat);
+ribbonL.position.set(-0.325, 1.669, 0.39);
+ribbonL.rotation.z = -1.255;
+scene.add(ribbonL);
+var ribbonGeoR = new THREE.PlaneGeometry(0.045, 0.684);
+var ribbonR = new THREE.Mesh(ribbonGeoR, ribbonMat);
+ribbonR.position.set(0.325, 1.669, 0.39);
+ribbonR.rotation.z = 1.255;
+scene.add(ribbonR);
+
+/* Ground */
+var groundGeo = new THREE.PlaneGeometry(20, 20);
+var groundMat = new THREE.MeshStandardMaterial({
+  color: 0x222218,
+  roughness: 1.0,
+  metalness: 0.0,
+});
+var ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.7;
+ground.receiveShadow = true;
+scene.add(ground);
+
+/* Dark patch near tombstone base */
+var darkPatchGeo = new THREE.PlaneGeometry(3.5, 2.0);
+var darkPatchMat = new THREE.MeshStandardMaterial({
+  color: 0x151510,
+  roughness: 1.0,
+  metalness: 0.0,
+});
+var darkPatch = new THREE.Mesh(darkPatchGeo, darkPatchMat);
+darkPatch.rotation.x = -Math.PI / 2;
+darkPatch.position.set(0, -0.695, 0.8);
+darkPatch.receiveShadow = true;
+scene.add(darkPatch);
+
+/* ===== 3D Chrysanthemum Flower System ===== */
+
+var petalMat = new THREE.MeshStandardMaterial({
+  color: 0xf0ebe0,
+  side: THREE.DoubleSide,
+  roughness: 0.6,
+  metalness: 0.0,
+});
+var petalMat2 = new THREE.MeshStandardMaterial({
+  color: 0xf5f0e8,
+  side: THREE.DoubleSide,
+  roughness: 0.6,
+  metalness: 0.0,
+});
+var petalMat3 = new THREE.MeshStandardMaterial({
+  color: 0xfaf5ee,
+  side: THREE.DoubleSide,
+  roughness: 0.6,
+  metalness: 0.0,
+});
+var centerMat = new THREE.MeshStandardMaterial({
+  color: 0xd4a574,
+  roughness: 0.5,
+  metalness: 0.1,
+});
+var stemMat = new THREE.MeshStandardMaterial({
+  color: 0x4a7a3a,
+  roughness: 0.8,
+  metalness: 0.0,
+});
+var leafMat = new THREE.MeshStandardMaterial({
+  color: 0x4a7a3a,
+  side: THREE.DoubleSide,
+  roughness: 0.7,
+  metalness: 0.0,
+});
+
+function createPetalShape(w, h) {
+  var petalShape = new THREE.Shape();
+  petalShape.moveTo(0, 0);
+  petalShape.quadraticCurveTo(w * 0.6, h * 0.3, w * 0.3, h);
+  petalShape.quadraticCurveTo(0, h * 1.05, -w * 0.3, h);
+  petalShape.quadraticCurveTo(-w * 0.6, h * 0.3, 0, 0);
+  return petalShape;
+}
+
+function createLeafShape() {
+  var s = new THREE.Shape();
+  s.moveTo(0, 0);
+  s.quadraticCurveTo(0.02, 0.03, 0.008, 0.06);
+  s.quadraticCurveTo(0, 0.065, -0.008, 0.06);
+  s.quadraticCurveTo(-0.02, 0.03, 0, 0);
+  return s;
+}
+
+var petalShapeOuter = createPetalShape(0.02, 0.06);
+var petalShapeMid = createPetalShape(0.018, 0.048);
+var petalShapeInner = createPetalShape(0.015, 0.035);
+var leafShapeGeo = new THREE.ShapeGeometry(createLeafShape());
+
+var petalGeoOuter = new THREE.ShapeGeometry(petalShapeOuter);
+var petalGeoMid = new THREE.ShapeGeometry(petalShapeMid);
+var petalGeoInner = new THREE.ShapeGeometry(petalShapeInner);
+var centerGeo = new THREE.SphereGeometry(0.015, 6, 4);
+var stemGeo = new THREE.CylinderGeometry(0.004, 0.004, 0.3, 4);
+
+function createFlowerGroup(seed) {
+  function pseudoRand() {
+    seed = (seed * 16807 + 11) % 2147483647;
+    return seed / 2147483647;
+  }
+
+  var group = new THREE.Group();
+  var headGroup = new THREE.Group();
+
+  var outerCount = 10 + Math.floor(pseudoRand() * 4);
+  for (var i = 0; i < outerCount; i++) {
+    var angle = (Math.PI * 2 / outerCount) * i + pseudoRand() * 0.2;
+    var petal = new THREE.Mesh(petalGeoOuter, petalMat);
+    petal.position.set(
+      Math.cos(angle) * 0.02,
+      Math.sin(angle) * 0.02,
+      0
+    );
+    petal.rotation.z = angle - Math.PI / 2;
+    petal.rotation.x = (pseudoRand() - 0.5) * 0.3;
+    headGroup.add(petal);
+  }
+
+  var midCount = 8 + Math.floor(pseudoRand() * 3);
+  for (var i = 0; i < midCount; i++) {
+    var angle = (Math.PI * 2 / midCount) * i + pseudoRand() * 0.3 + 0.15;
+    var petal = new THREE.Mesh(petalGeoMid, petalMat2);
+    petal.position.set(
+      Math.cos(angle) * 0.012,
+      Math.sin(angle) * 0.012,
+      0.001
+    );
+    petal.rotation.z = angle - Math.PI / 2;
+    petal.rotation.x = (pseudoRand() - 0.5) * 0.2;
+    headGroup.add(petal);
+  }
+
+  var innerCount = 6 + Math.floor(pseudoRand() * 3);
+  for (var i = 0; i < innerCount; i++) {
+    var angle = (Math.PI * 2 / innerCount) * i + pseudoRand() * 0.4 + 0.1;
+    var petal = new THREE.Mesh(petalGeoInner, petalMat3);
+    petal.position.set(
+      Math.cos(angle) * 0.006,
+      Math.sin(angle) * 0.006,
+      0.002
+    );
+    petal.rotation.z = angle - Math.PI / 2;
+    headGroup.add(petal);
+  }
+
+  var center = new THREE.Mesh(centerGeo, centerMat);
+  center.position.set(0, 0, 0.003);
+  headGroup.add(center);
+
+  headGroup.position.set(0, 0.15, 0);
+  group.add(headGroup);
+
+  var stem = new THREE.Mesh(stemGeo, stemMat);
+  stem.position.set(0, 0, 0);
+  group.add(stem);
+
+  var leaf1 = new THREE.Mesh(leafShapeGeo, leafMat);
+  leaf1.position.set(0.008, 0.06, 0);
+  leaf1.rotation.z = -0.4;
+  leaf1.scale.set(1.2, 1.2, 1);
+  group.add(leaf1);
+
+  var leaf2 = new THREE.Mesh(leafShapeGeo, leafMat);
+  leaf2.position.set(-0.008, -0.02, 0);
+  leaf2.rotation.z = 0.5 + Math.PI;
+  leaf2.scale.set(1.0, 1.0, 1);
+  group.add(leaf2);
+
+  group.rotation.x = -Math.PI / 2.1;
+  group.scale.set(1.8, 1.8, 1.8);
+
+  return group;
+}
+
+var flowers3D = [];
+var currentFlowerCount = 0;
+var maxVisibleFlowers = 200;
+var animatingFlowers = [];
+
+function getFlowerPosition(idx) {
+  var r = pseudoRandSimple(idx);
+  var r2 = pseudoRandSimple(idx * 7 + 3);
+  var r3 = pseudoRandSimple(idx * 13 + 17);
+  var x = (r - 0.5) * 1.8 + (r3 - 0.5) * 0.3;
+  var z = 1.2 + r2 * 0.8 + (r3 - 0.5) * 0.3;
+  var layer = Math.floor(idx / 5);
+  var y = -0.6 + layer * 0.08 + r * 0.03;
+  return { x: x, z: z, y: y };
+}
+
+function pseudoRandSimple(n) {
+  var x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+function placeFlowerInstant(idx) {
+  if (idx >= maxVisibleFlowers) return;
+  var seed = idx * 9973 + 12345;
+  var flower = createFlowerGroup(seed);
+  var pos = getFlowerPosition(idx);
+  flower.position.set(pos.x, pos.y !== undefined ? pos.y : -0.65, pos.z);
+  flower.rotation.y = pseudoRandSimple(idx * 13 + 7) * Math.PI * 2;
+  scene.add(flower);
+  flowers3D.push(flower);
+}
+
+function addFlowerAnimated() {
+  var idx = flowers3D.length;
+  if (idx >= maxVisibleFlowers) return;
+  var seed = Date.now() + Math.floor(Math.random() * 100000);
+  var flower = createFlowerGroup(seed);
+  var pos = getFlowerPosition(idx);
+  var targetY = pos.y !== undefined ? pos.y : -0.65;
+  flower.position.set(pos.x, 3.0, pos.z);
+  flower.rotation.y = Math.random() * Math.PI * 2;
+  scene.add(flower);
+  flowers3D.push(flower);
+
+  var startTime = performance.now();
+  var duration = 3000;
+  animatingFlowers.push({
+    flower: flower,
+    startTime: startTime,
+    duration: duration,
+    startY: 3.0,
+    targetY: targetY,
+  });
+}
+
+function updateFlowerAnimations() {
+  var now = performance.now();
+  for (var i = animatingFlowers.length - 1; i >= 0; i--) {
+    var anim = animatingFlowers[i];
+    var elapsed = now - anim.startTime;
+    var t = Math.min(elapsed / anim.duration, 1.0);
+
+    var eased;
+    if (t < 0.6) {
+      eased = t / 0.6;
+      eased = 1 - (1 - eased) * (1 - eased);
+      eased = eased * 1.08;
+    } else if (t < 0.8) {
+      var bt = (t - 0.6) / 0.2;
+      eased = 1.08 - Math.sin(bt * Math.PI) * 0.08;
+    } else {
+      var bt = (t - 0.8) / 0.2;
+      eased = 1.0 - (1 - bt) * 0.02;
+    }
+
+    anim.flower.position.y = anim.startY + (anim.targetY - anim.startY) * eased;
+
+    if (t >= 1.0) {
+      anim.flower.position.y = anim.targetY;
+      animatingFlowers.splice(i, 1);
+    }
+  }
+}
+
+function renderInitialFlowers(count) {
+  var n = Math.min(count, maxVisibleFlowers);
+  for (var i = 0; i < n; i++) {
+    placeFlowerInstant(i);
+  }
+}
+
+function updateFlowerCount(count) {
+  currentFlowerCount = count;
+  var el = document.getElementById("flower-overlay");
+  el.textContent = "\uC9C0\uAE08\uAE4C\uC9C0 " + count.toLocaleString() + "\uC1A1\uC774\uC758 \uAD6D\uD654\uAC00 \uD5CC\uD654\uB418\uC5C8\uC2B5\uB2C8\uB2E4";
+  document.getElementById("stat-flowers").textContent = "\uD83C\uDF3C " + count.toLocaleString() + "\uC1A1\uC774";
+}
+
+/* Mouse parallax */
+var mouseX = 0;
+var mouseY = 0;
+var isMobile = window.innerWidth < 768;
+if (!isMobile) {
+  document.addEventListener("mousemove", function (e) {
+    mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+}
+
+/* Resize */
+function onResize() {
+  var w = container.clientWidth;
+  var h = container.clientHeight;
+  camera.aspect = w / h;
+  camera.fov = window.innerWidth < 768 ? 55 : 45;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  isMobile = window.innerWidth < 768;
+}
+window.addEventListener("resize", onResize);
+
+/* Animation loop */
+var tick = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  tick++;
+
+  /* candle flicker */
+  var flickerL = 0.5 + Math.sin(tick * 0.08) * 0.15 + Math.sin(tick * 0.13) * 0.1 + Math.random()*0.05;
+  var flickerR = 0.5 + Math.cos(tick * 0.09) * 0.15 + Math.cos(tick * 0.11) * 0.1 + Math.random()*0.05;
+  candleL.intensity = flickerL;
+  candleR.intensity = flickerR;
+
+  /* Flame visual scale flicker */
+  var flameScaleL = 0.8 + Math.sin(tick*0.12)*0.2 + Math.random()*0.1;
+  var flameScaleR = 0.8 + Math.cos(tick*0.11)*0.2 + Math.random()*0.1;
+  flameMeshL.scale.set(1, flameScaleL, 1);
+  flameMeshR.scale.set(1, flameScaleR, 1);
+
+  /* Particle animation */
+  for(var pi=0; pi<particles.length; pi++){
+    var p = particles[pi];
+    var ud = p.userData;
+    p.position.y += ud.speed;
+    p.position.x += ud.driftX;
+    p.position.z += ud.driftZ;
+    p.material.opacity = ud.baseOpacity * (0.5 + 0.5*Math.sin(tick*0.02 + ud.phase));
+    /* Respawn at bottom */
+    if(p.position.y > 4.5){
+      p.position.y = -0.5;
+      p.position.x = (Math.random()-0.5)*6;
+      p.position.z = (Math.random()-0.5)*4 + 1;
+    }
+  }
+
+  /* parallax / auto-orbit */
+  if (!isMobile) {
+    camera.position.x = mouseX * 0.4;
+    camera.position.y = 3.5 - mouseY * 0.3;
+  } else {
+    camera.position.x = Math.sin(tick * 0.003) * 0.3;
+  }
+  camera.lookAt(0, 0.0, 1.0);
+
+  updateFlowerAnimations();
+
+  renderer.render(scene, camera);
+}
+animate();
+
+/* ===== Floating Comments (center-bottom upward) ===== */
+var floatingQueue = [];
+var activeFloating = 0;
+var maxFloating = 5;
+
+function showFloatingComment(comment) {
+  if(activeFloating >= maxFloating){
+    floatingQueue.push(comment);
+    return;
+  }
+  spawnFloatingComment(comment);
+}
+
+function spawnFloatingComment(comment){
+  activeFloating++;
+  var el = document.createElement("div");
+  el.className = "floating-comment";
+  var danmakuColors = ["#ff6b6b","#ffa94d","#ffd43b","#69db7c","#38d9a9","#66d9ef","#74c0fc","#b197fc","#f783ac","#ffffff","#e599f7","#ff8787","#91d5ff","#95de64","#ffc069"];
+  el.style.color = danmakuColors[Math.floor(Math.random()*danmakuColors.length)];
+  el.style.fontWeight = "700";
+  el.textContent = comment.nickname + ": " + comment.message;
+
+  var offsetX = (Math.random()-0.5)*200;
+  var screenW = window.innerWidth;
+  var startLeft = screenW/2 + offsetX;
+  var bottomBarH = 70;
+  var startBottom = bottomBarH + 10;
+
+  el.style.left = startLeft + "px";
+  el.style.bottom = startBottom + "px";
+  el.style.opacity = "0";
+  el.style.transform = "translateX(-50%)";
+  document.body.appendChild(el);
+
+  var duration = 10000;
+  var startTime = performance.now();
+  var totalDist = window.innerHeight - bottomBarH;
+
+  function animateFloat(){
+    var now = performance.now();
+    var elapsed = now - startTime;
+    var t = elapsed / duration;
+    if(t >= 1){
+      el.remove();
+      activeFloating--;
+      if(floatingQueue.length > 0){
+        spawnFloatingComment(floatingQueue.shift());
+      }
+      return;
+    }
+    var y = t * totalDist;
+    var opacity;
+    if(t < 0.05) opacity = t / 0.05;
+    else if(t < 0.8) opacity = 1;
+    else opacity = 1 - (t-0.8)/0.2;
+
+    el.style.bottom = (startBottom + y) + "px";
+    el.style.opacity = String(opacity);
+    requestAnimationFrame(animateFloat);
+  }
+  requestAnimationFrame(animateFloat);
+}
+
+
+
+/* ===== Share ===== */
+window.shareLink = function(){
+  var url = 'https://boj-memorial.brian-dev.cloud';
+  var title = 'R.I.P Baekjoon Online Judge - 추모 공간';
+  if(navigator.share){
+    navigator.share({title:title,url:url}).catch(function(){});
+  } else {
+    navigator.clipboard.writeText(url).then(function(){
+      showToast('링크가 복사되었습니다');
+    }).catch(function(){
+      prompt('링크를 복사하세요:', url);
+    });
+  }
+}
+
+
+/* Share button listener */
+document.getElementById('share-menu-btn').addEventListener('click', function(){
+  var dd = document.getElementById('menu-dropdown');
+  if(dd) dd.classList.remove('show');
+  window.shareLink();
+});
+
+
+/* ===== Suggest Modal ===== */
+var suggestModal = document.getElementById('suggest-modal');
+document.getElementById('suggest-menu-btn').addEventListener('click', function(){
+  suggestModal.classList.add('show');
+  document.getElementById('menu-dropdown').classList.remove('show');
+  document.getElementById('suggest-reason').value = '';
+  document.querySelectorAll('.suggest-cat').forEach(function(b){b.classList.remove('selected');b.style.borderColor='#3f3f46';b.style.color='#a1a1aa';});
+});
+document.getElementById('suggest-cancel').addEventListener('click', function(){
+  suggestModal.classList.remove('show');
+});
+suggestModal.addEventListener('click', function(e){
+  if(e.target === suggestModal) suggestModal.classList.remove('show');
+});
+document.querySelectorAll('.suggest-cat').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.suggest-cat').forEach(function(b){b.classList.remove('selected');b.style.borderColor='#3f3f46';b.style.color='#a1a1aa';});
+    btn.classList.add('selected');
+    btn.style.borderColor='#d4a574';
+    btn.style.color='#d4a574';
+  });
+});
+document.getElementById('suggest-submit').addEventListener('click', function(){
+  var category = document.querySelector('.suggest-cat.selected');
+  var catText = category ? category.dataset.cat : '';
+  var reason = document.getElementById('suggest-reason').value.trim();
+  if(!catText){
+    showToast('카테고리를 선택해주세요');
+    return;
+  }
+  if(!reason){
+    showToast('제안 내용을 입력해주세요');
+    return;
+  }
+  socket.emit('report', {reason: '[기능제안][' + catText + '] ' + reason});
+  suggestModal.classList.remove('show');
+  showToast('제안이 접수되었습니다. 감사합니다!');
+});
+
+/* ===== Socket.io ===== */
+var socket = io();
+
+socket.on('rate:limited', function(data) {
+  var sec = data && data.seconds ? data.seconds : 5;
+  showRateLimitModal(sec);
+});
+
+fetch("/api/stats")
+  .then(function (r) {
+    return r.json();
+  })
+  .then(function (d) {
+    updateFlowerCount(d.flowers);
+    renderInitialFlowers(d.flowers);
+  });
+
+socket.on("comment:new", function (comment) {
+  showFloatingComment(comment);
+  addFlowerAnimated();
+});
+
+socket.on("flower:update", function (count) {
+  updateFlowerCount(count);
+});
+
+socket.on("online", function (count) {
+  document.getElementById("stat-online").textContent = "\uD83D\uDC65 " + count + "\uBA85";
+});
+
+socket.on("report:ack", function(){
+  reportModal.classList.remove('show');
+  showToast("\uC2E0\uACE0\uAC00 \uC811\uC218\uB418\uC5C8\uC2B5\uB2C8\uB2E4");
+});
+
+/* Report submit */
+reportSubmit.addEventListener('click', function(){
+  var nickname = document.getElementById('report-nickname').value.trim();
+  var category = document.querySelector('.report-cat.selected');
+  var catText = category ? category.dataset.cat : '';
+  var reason = document.getElementById('report-reason').value.trim();
+  if(!catText){
+    showToast('신고 사유를 선택해주세요');
+    return;
+  }
+  var fullReason = '[' + catText + ']';
+  if(nickname) fullReason += ' 대상: ' + nickname;
+  if(reason) fullReason += ' | ' + reason;
+  socket.emit('report', {reason: fullReason});
+  reportModal.classList.remove('show');
+  document.getElementById('report-nickname').value = '';
+  document.getElementById('report-reason').value = '';
+  document.querySelectorAll('.report-cat').forEach(function(b){b.classList.remove('selected');b.style.borderColor='#3f3f46';b.style.color='#a1a1aa';});
+  showToast('신고가 접수되었습니다');
+});
+
+/* Report category selection */
+document.querySelectorAll('.report-cat').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.report-cat').forEach(function(b){b.classList.remove('selected');b.style.borderColor='#3f3f46';b.style.color='#a1a1aa';});
+    btn.classList.add('selected');
+    btn.style.borderColor='#d4a574';
+    btn.style.color='#d4a574';
+  });
+});
+
+/* ===== Input handling ===== */
+var msgInput = document.getElementById("msg-input");
+var submitBtn = document.getElementById("submit-btn");
+var cooldown = false;
+
+function doSubmit() {
+  if (cooldown) return;
+  var message = msgInput.value.trim();
+  if (!message) return;
+
+  socket.emit("comment", { nickname: currentNickname, message: message, deviceToken: deviceToken });
+  msgInput.value = "";
+
+  showToast("$ git push origin memorial");
+
+  cooldown = true;
+  submitBtn.disabled = true;
+  var sec = 5;
+  submitBtn.textContent = sec + "s";
+  var iv = setInterval(function () {
+    sec--;
+    if (sec <= 0) {
+      clearInterval(iv);
+      cooldown = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = "\uD5CC\uD654";
+    } else {
+      submitBtn.textContent = sec + "s";
+    }
+  }, 1000);
+}
+
+submitBtn.addEventListener("click", doSubmit);
+msgInput.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") doSubmit();
+});
+</script>
+</body>
+</html>

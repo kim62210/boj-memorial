@@ -1,0 +1,345 @@
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const { Pool } = require("pg");
+const path = require("path");
+
+const PORT = process.env.PORT || 4100;
+
+// [C-1] DATABASE_URL must be set via environment - no fallback
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  console.error("FATAL: DATABASE_URL environment variable is not set");
+  process.exit(1);
+}
+
+// [M-1] HTML escape function for input sanitization
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// [M-2] Forbidden nickname patterns
+const FORBIDDEN_NICKNAMES = [
+  /관리자/i,
+  /운영자/i,
+  /admin/i,
+  /operator/i,
+  /moderator/i,
+  /system/i,
+];
+
+function isNicknameForbidden(nickname) {
+  return FORBIDDEN_NICKNAMES.some((pattern) => pattern.test(nickname));
+}
+
+// --- DB Setup ---
+// [L-4] Reduced pool size from 50 to 20
+const pool = new Pool({
+  connectionString: DATABASE_URL,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
+
+async function initDB() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS comments (
+      id SERIAL PRIMARY KEY,
+      nickname TEXT NOT NULL DEFAULT '익명의 개발자',
+      message TEXT NOT NULL,
+      ip TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS flowers (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      count INTEGER NOT NULL DEFAULT 0
+    );
+    INSERT INTO flowers (id, count) VALUES (1, 0) ON CONFLICT DO NOTHING;
+    CREATE TABLE IF NOT EXISTS reports (
+      id SERIAL PRIMARY KEY,
+      comment_id INTEGER,
+      reason TEXT,
+      ip TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_comments_created ON comments(created_at DESC);
+  `);
+  const res = await pool.query("SELECT count FROM flowers WHERE id = 1");
+  return res.rows[0].count;
+}
+
+// --- In-memory flower buffer ---
+let flowerBuffer = 0;
+let flowerTotal = 0;
+
+async function flushFlowers() {
+  if (flowerBuffer > 0) {
+    const buf = flowerBuffer;
+    flowerBuffer = 0;
+    await pool.query("UPDATE flowers SET count = count + $1 WHERE id = 1", [buf]);
+  }
+}
+setInterval(flushFlowers, 10000);
+
+// --- Rate limiting ---
+const rateLimits = new Map();
+function checkRate(ip, action, cooldownMs, deviceToken) {
+  const keyIp = `${ip}:${action}`;
+  const keyDt = deviceToken ? `dt:${deviceToken}:${action}` : null;
+  const now = Date.now();
+  const lastIp = rateLimits.get(keyIp) || 0;
+  const lastDt = keyDt ? (rateLimits.get(keyDt) || 0) : 0;
+  if (now - lastIp < cooldownMs || now - lastDt < cooldownMs) return false;
+  rateLimits.set(keyIp, now);
+  if (keyDt) rateLimits.set(keyDt, now);
+  return true;
+}
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, ts] of rateLimits) {
+    if (now - ts > 60000) rateLimits.delete(key);
+  }
+}, 60000);
+
+// --- Express ---
+const app = express();
+
+// [L-1] Disable X-Powered-By header
+app.disable("x-powered-by");
+
+app.disable("etag");
+app.use(express.json({ limit: "1kb" }));
+
+// HTTP rate limiting per IP (60 requests per minute)
+const httpRateMap = new Map();
+app.use((req, res, next) => {
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  const now = Date.now();
+  const windowMs = 60000;
+  const maxReq = 60;
+  if (!httpRateMap.has(ip)) {
+    httpRateMap.set(ip, []);
+  }
+  const timestamps = httpRateMap.get(ip).filter(t => now - t < windowMs);
+  if (timestamps.length >= maxReq) {
+    return res.status(429).json({ error: "Too many requests" });
+  }
+  timestamps.push(now);
+  httpRateMap.set(ip, timestamps);
+  next();
+});
+// Clean HTTP rate map every 2 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, ts] of httpRateMap) {
+    const filtered = ts.filter(t => now - t < 60000);
+    if (filtered.length === 0) httpRateMap.delete(ip);
+    else httpRateMap.set(ip, filtered);
+  }
+}, 120000);
+app.use(express.static(path.join(__dirname, "public"), {
+  setHeaders: function(res, filePath) {
+    if (filePath.endsWith(".html")) {
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    } else {
+      res.setHeader("Cache-Control", "public, max-age=3600");
+    }
+  }
+}));
+
+app.get("/api/comments", async (req, res) => {
+  try {
+    const page = Math.max(0, parseInt(req.query.page) || 0);
+    const comments = await pool.query(
+      "SELECT id, nickname, message, created_at FROM comments ORDER BY created_at DESC LIMIT 50 OFFSET $1",
+      [page * 50]
+    );
+    const total = await pool.query("SELECT COUNT(*) as cnt FROM comments");
+    res.json({
+      comments: comments.rows,
+      total: parseInt(total.rows[0].cnt),
+      page,
+      hasMore: (page + 1) * 50 < parseInt(total.rows[0].cnt)
+    });
+  } catch (e) {
+    // [H-5] Sanitized error response
+    console.error("API error:", e.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/api/stats", async (_req, res) => {
+  try {
+    const total = await pool.query("SELECT COUNT(*) as cnt FROM comments");
+    res.json({ flowers: flowerTotal, comments: parseInt(total.rows[0].cnt) });
+  } catch (e) {
+    // [H-5] Sanitized error response
+    console.error("API error:", e.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// [L-2] Custom 404 handler (registered after static + API routes, before server.listen)
+app.use((req, res) => {
+  res.status(404).json({ error: "Not found" });
+});
+
+// --- HTTP + Socket.io ---
+const server = http.createServer(app);
+const io = new Server(server, {
+  perMessageDeflate: false,
+  maxHttpBufferSize: 1e6,
+  pingTimeout: 30000,
+  pingInterval: 25000,
+  transports: ["websocket", "polling"],
+  // [H-2] Restricted CORS origin
+  cors: { origin: ["https://boj-memorial.brian-dev.cloud", "https://boj-memorial.duckdns.org"] }
+});
+
+let onlineCount = 0;
+
+// Socket.io connection rate limiting (max 5 connections per IP per minute)
+const socketRateMap = new Map();
+io.use((socket, next) => {
+  const ip = socket.handshake.headers["x-forwarded-for"] || socket.handshake.address;
+  const now = Date.now();
+  if (!socketRateMap.has(ip)) socketRateMap.set(ip, []);
+  const ts = socketRateMap.get(ip).filter(t => now - t < 60000);
+  if (ts.length >= 5) {
+    return next(new Error("Too many connections"));
+  }
+  ts.push(now);
+  socketRateMap.set(ip, ts);
+  next();
+});
+
+// [M-3] Per-socket event flood protection
+const socketEventCounters = new Map();
+setInterval(() => {
+  socketEventCounters.clear();
+}, 60000);
+
+io.on("connection", (socket) => {
+  onlineCount++;
+  io.emit("online", onlineCount);
+  const ip = socket.handshake.headers["x-forwarded-for"] || socket.handshake.address;
+
+  // [M-3] Event counter middleware
+  socketEventCounters.set(socket.id, 0);
+  const originalOnevent = socket.onevent;
+  socket.onevent = function(packet) {
+    const count = (socketEventCounters.get(socket.id) || 0) + 1;
+    socketEventCounters.set(socket.id, count);
+    if (count > 100) {
+      console.error("Socket flood detected, disconnecting:", socket.id);
+      socket.disconnect(true);
+      return;
+    }
+    originalOnevent.call(socket, packet);
+  };
+
+  socket.on("flower", (data) => {
+    const dt = data && data.deviceToken ? data.deviceToken : null;
+    if (!checkRate(ip, "flower", 2000, dt)) {
+      socket.emit("rate:limited", { seconds: 2 });
+      return;
+    }
+    flowerBuffer++;
+    flowerTotal++;
+    io.emit("flower:update", flowerTotal);
+    io.emit("flower:animation", {});
+  });
+
+  socket.on("comment", async (data) => {
+    const dt = data && data.deviceToken ? data.deviceToken : null;
+    if (!checkRate(ip, "comment", 5000, dt)) {
+      socket.emit("rate:limited", { seconds: 5 });
+      return;
+    }
+    if (!data || !data.message || typeof data.message !== "string") return;
+    let nickname = (data.nickname || "").trim().slice(0, 30) || "\uC775\uBA85\uC758 \uAC1C\uBC1C\uC790";
+    const message = data.message.trim().slice(0, 500);
+    if (!message) return;
+
+    // [M-2] Forbidden nickname check
+    if (isNicknameForbidden(nickname)) {
+      socket.emit("comment:error", { error: "사용할 수 없는 닉네임입니다." });
+      return;
+    }
+
+    // [M-1] Sanitize inputs before DB insert
+    nickname = escapeHtml(nickname);
+    const sanitizedMessage = escapeHtml(message);
+
+    try {
+      const result = await pool.query(
+        "INSERT INTO comments (nickname, message, ip) VALUES ($1, $2, $3) RETURNING id, nickname, message, created_at",
+        [nickname, sanitizedMessage, ip]
+      );
+      const comment = result.rows[0];
+      // Each comment = one flower
+      flowerBuffer++;
+      flowerTotal++;
+      io.emit("comment:new", comment);
+      io.emit("flower:update", flowerTotal);
+      io.emit("flower:animation", {});
+    } catch (e) {
+      console.error("Comment insert error:", e.message);
+    }
+  });
+
+  socket.on("report", async (data) => {
+    const dt = data && data.deviceToken ? data.deviceToken : null;
+    if (!checkRate(ip, "report", 30000, dt)) {
+      socket.emit("rate:limited", { seconds: 30 });
+      return;
+    }
+    if (!data || !data.reason || typeof data.reason !== "string") return;
+    const reason = data.reason.trim().slice(0, 500);
+    if (!reason) return;
+    try {
+      await pool.query(
+        "INSERT INTO reports (reason, ip) VALUES ($1, $2)",
+        [reason, ip]
+      );
+      socket.emit("report:ack");
+    } catch (e) {
+      console.error("Report insert error:", e.message);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    onlineCount = Math.max(0, onlineCount - 1);
+    io.emit("online", onlineCount);
+    socketEventCounters.delete(socket.id);
+  });
+});
+
+// Broadcast online count every 5s
+setInterval(() => {
+  io.emit("online", onlineCount);
+}, 5000);
+
+// Graceful shutdown
+async function shutdown() {
+  await flushFlowers();
+  await pool.end();
+  process.exit(0);
+}
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
+
+// Start
+initDB().then((count) => {
+  flowerTotal = count;
+  server.listen(PORT, () => {
+    console.log(`BOJ Memorial running on port ${PORT} (PostgreSQL)`);
+  });
+}).catch((e) => {
+  console.error("DB init failed:", e.message);
+  process.exit(1);
+});
