@@ -217,6 +217,16 @@ body{
 }
 #submit-btn:hover{background:#c4956a}
 #submit-btn:disabled{opacity:0.5;cursor:not-allowed}
+#incense-replace-btn{
+  background:transparent;color:#d4a574;
+  border:1px solid #d4a574;border-radius:6px;
+  padding:7px 12px;font-size:13px;font-weight:600;
+  font-family:"Noto Sans KR",sans-serif;
+  cursor:pointer;white-space:nowrap;
+  transition:background 0.2s,color 0.2s;
+  flex-shrink:0;
+}
+#incense-replace-btn:hover{background:#d4a574;color:#18181b}
 
 /* Stats section */
 .bar-stats{
@@ -456,6 +466,7 @@ body{
       <div class="bar-input-row">
         <input id="msg-input" type="text" placeholder="추모의 말을 남겨주세요..." maxlength="500" autocomplete="off">
         <button id="submit-btn" type="button">헌화</button>
+        <button id="incense-replace-btn" type="button" title="향초를 새것으로 교체합니다">향 교체 · 0</button>
       </div>
     </div>
     <div class="bar-divider"></div>
@@ -469,7 +480,6 @@ body{
       <div id="menu-wrap">
         <button class="bar-btn" id="menu-btn" type="button">&#8943;</button>
         <div id="menu-dropdown">
-          <button id="incense-menu-btn" type="button">향초 교체</button>
           <button id="suggest-menu-btn" type="button">기능 제안</button>
           <button id="share-menu-btn" type="button" >링크 공유</button>
           <button id="privacy-btn" type="button">개인정보처리방침</button>
@@ -1204,29 +1214,72 @@ darkPatch.position.set(0, -0.695, 0.8);
 darkPatch.receiveShadow = true;
 scene.add(darkPatch);
 
-/* ===== Incense stick (향초) — 1-hour burn with smoke ===== */
+/* ===== Incense stick (향초) — 1-hour burn with smoke, gold censer ===== */
 var INCENSE_DURATION_MS = 3600000;
 var INCENSE_ORIGINAL_HEIGHT = 0.7;
 var INCENSE_STORAGE_KEY = "boj_incense_start";
-var INCENSE_BASE_Y = 0.04;
+var INCENSE_COUNT_KEY = "boj_incense_count";
+var INCENSE_BASE_Y = 0.06;
 
 var incenseGroup = new THREE.Group();
-incenseGroup.position.set(0, -0.6, 1.85);
+incenseGroup.position.set(0, -0.62, 2.4);
 scene.add(incenseGroup);
 
-var incenseHolderMat = new THREE.MeshStandardMaterial({color:0x2a1a0a, roughness:0.85, metalness:0.1});
-var incenseHolderGeo = new THREE.CylinderGeometry(0.06, 0.08, 0.04, 12);
-var incenseHolder = new THREE.Mesh(incenseHolderGeo, incenseHolderMat);
-incenseHolder.position.y = 0.02;
-incenseHolder.castShadow = true;
-incenseGroup.add(incenseHolder);
+// Gold censer (향로) - lathe revolution for a bowl/urn silhouette
+var censerMat = new THREE.MeshStandardMaterial({
+  color: 0xd4a13a,
+  roughness: 0.28,
+  metalness: 0.82,
+  emissive: 0x2a1a00,
+  emissiveIntensity: 0.15,
+});
+var censerPts = [
+  new THREE.Vector2(0.00, 0.000),
+  new THREE.Vector2(0.085, 0.002),
+  new THREE.Vector2(0.098, 0.012),
+  new THREE.Vector2(0.105, 0.028),
+  new THREE.Vector2(0.102, 0.046),
+  new THREE.Vector2(0.088, 0.060),
+  new THREE.Vector2(0.072, 0.062),
+  new THREE.Vector2(0.074, 0.050),
+];
+var censerGeo = new THREE.LatheGeometry(censerPts, 24);
+var censer = new THREE.Mesh(censerGeo, censerMat);
+censer.castShadow = true;
+censer.receiveShadow = true;
+incenseGroup.add(censer);
 
+// Gold rim ring for the top edge
+var rimGeo = new THREE.TorusGeometry(0.086, 0.006, 6, 20);
+var rim = new THREE.Mesh(rimGeo, censerMat);
+rim.rotation.x = Math.PI / 2;
+rim.position.y = 0.062;
+incenseGroup.add(rim);
+
+// Dark ash inside the censer (what the stick pierces into)
+var ashMat = new THREE.MeshStandardMaterial({color: 0x1a1208, roughness: 1.0});
+var ashGeo = new THREE.CircleGeometry(0.07, 20);
+var ash = new THREE.Mesh(ashGeo, ashMat);
+ash.rotation.x = -Math.PI / 2;
+ash.position.y = 0.055;
+incenseGroup.add(ash);
+
+// Incense stick (green) - hit target for touch-to-smoke interaction
 var incenseStickMat = new THREE.MeshStandardMaterial({color:0x4a8a3a, roughness:0.9, metalness:0.0});
 var incenseStickGeo = new THREE.CylinderGeometry(0.008, 0.01, INCENSE_ORIGINAL_HEIGHT, 8);
 var incenseStick = new THREE.Mesh(incenseStickGeo, incenseStickMat);
 incenseStick.castShadow = true;
 incenseStick.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT / 2;
+incenseStick.userData.isIncense = true;
 incenseGroup.add(incenseStick);
+
+// Wider invisible hit target so finger/mouse pokes register reliably
+var incenseHitMat = new THREE.MeshBasicMaterial({visible: false});
+var incenseHitGeo = new THREE.CylinderGeometry(0.04, 0.045, INCENSE_ORIGINAL_HEIGHT, 6);
+var incenseHit = new THREE.Mesh(incenseHitGeo, incenseHitMat);
+incenseHit.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT / 2;
+incenseHit.userData.isIncense = true;
+incenseGroup.add(incenseHit);
 
 var incenseTipMat = new THREE.MeshBasicMaterial({color:0xff5522, transparent:true, opacity:0.9});
 var incenseTipGeo = new THREE.SphereGeometry(0.012, 8, 6);
@@ -1234,13 +1287,13 @@ var incenseTip = new THREE.Mesh(incenseTipGeo, incenseTipMat);
 incenseTip.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT;
 incenseGroup.add(incenseTip);
 
-var incenseLight = new THREE.PointLight(0xff5522, 0.3, 1.2);
+var incenseLight = new THREE.PointLight(0xff8833, 0.35, 1.5);
 incenseLight.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT;
 incenseGroup.add(incenseLight);
 
 var smokeParticles = [];
 var smokeGeo = new THREE.SphereGeometry(0.018, 6, 6);
-for (var si = 0; si < 18; si++) {
+for (var si = 0; si < 24; si++) {
   var smokeMat = new THREE.MeshBasicMaterial({color:0xcccccc, transparent:true, opacity:0});
   var sm = new THREE.Mesh(smokeGeo, smokeMat);
   sm.userData = {
@@ -1248,6 +1301,7 @@ for (var si = 0; si < 18; si++) {
     driftX: (Math.random() - 0.5) * 0.002,
     driftZ: (Math.random() - 0.5) * 0.002,
     speed: 0.006 + Math.random() * 0.004,
+    burst: false,
   };
   incenseGroup.add(sm);
   smokeParticles.push(sm);
@@ -1266,15 +1320,60 @@ function getIncenseStartTime() {
   return now;
 }
 
+function getIncenseCount() {
+  try {
+    var stored = localStorage.getItem(INCENSE_COUNT_KEY);
+    var parsed = parseInt(stored, 10);
+    return isNaN(parsed) || parsed < 0 ? 0 : parsed;
+  } catch (e) { return 0; }
+}
+
+function setIncenseCount(n) {
+  try { localStorage.setItem(INCENSE_COUNT_KEY, String(n)); } catch (e) {}
+  var btn = document.getElementById("incense-replace-btn");
+  if (btn) btn.textContent = "향 교체 · " + n;
+}
+
 function replaceIncense() {
   var now = Date.now();
   try { localStorage.setItem(INCENSE_STORAGE_KEY, String(now)); } catch (e) {}
+  setIncenseCount(getIncenseCount() + 1);
   for (var si = 0; si < smokeParticles.length; si++) {
     smokeParticles[si].userData.life = Math.random() * 0.3;
+    smokeParticles[si].userData.burst = false;
     smokeParticles[si].material.opacity = 0;
   }
 }
 window.replaceIncense = replaceIncense;
+
+// Emit a burst of smoke at the current tip - triggered by pointer/touch on the stick
+function burstIncenseSmoke() {
+  var elapsed = Date.now() - getIncenseStartTime();
+  var remaining = Math.max(0, 1 - elapsed / INCENSE_DURATION_MS);
+  if (remaining <= 0.002) return;
+  var emitY = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT * remaining;
+  var count = 0;
+  for (var si = 0; si < smokeParticles.length && count < 8; si++) {
+    var sm = smokeParticles[si];
+    if (sm.userData.life >= 0.85 || sm.material.opacity < 0.05) {
+      sm.userData.life = 0;
+      sm.userData.burst = true;
+      sm.userData.speed = 0.014 + Math.random() * 0.008;
+      sm.userData.driftX = (Math.random() - 0.5) * 0.012;
+      sm.userData.driftZ = (Math.random() - 0.5) * 0.012;
+      sm.position.set(
+        (Math.random() - 0.5) * 0.02,
+        emitY + (Math.random() - 0.5) * 0.01,
+        (Math.random() - 0.5) * 0.02
+      );
+      count++;
+    }
+  }
+  // Brief tip flare
+  incenseLight.intensity = 0.8;
+  incenseTipMat.opacity = 1.0;
+}
+window.burstIncenseSmoke = burstIncenseSmoke;
 
 function updateIncense() {
   var elapsed = Date.now() - getIncenseStartTime();
@@ -1283,26 +1382,30 @@ function updateIncense() {
   var burning = remaining > 0.002;
 
   incenseStick.visible = burning;
+  incenseHit.visible = burning;
   incenseTip.visible = burning;
   incenseLight.visible = burning;
 
   if (burning) {
     incenseStick.scale.y = remaining;
     incenseStick.position.y = INCENSE_BASE_Y + currentHeight / 2;
+    incenseHit.scale.y = remaining;
+    incenseHit.position.y = INCENSE_BASE_Y + currentHeight / 2;
     var tipY = INCENSE_BASE_Y + currentHeight;
     incenseTip.position.y = tipY;
     incenseLight.position.y = tipY;
-    incenseLight.intensity = 0.28 + Math.random() * 0.08;
-    incenseTipMat.opacity = 0.8 + Math.random() * 0.2;
+    incenseLight.intensity = 0.32 + Math.random() * 0.1;
+    incenseTipMat.opacity = 0.85 + Math.random() * 0.15;
   }
 
   var emitY = INCENSE_BASE_Y + currentHeight;
   for (var si = 0; si < smokeParticles.length; si++) {
     var sm = smokeParticles[si];
     var ud = sm.userData;
-    ud.life += ud.speed * 0.08;
-    if (ud.life >= 1 || !burning) {
-      if (burning) {
+    var isBurst = ud.burst;
+    ud.life += ud.speed * (isBurst ? 0.06 : 0.08);
+    if (ud.life >= 1) {
+      if (burning && !isBurst) {
         ud.life = 0;
         sm.position.set(
           (Math.random() - 0.5) * 0.008,
@@ -1311,10 +1414,15 @@ function updateIncense() {
         );
         ud.driftX = (Math.random() - 0.5) * 0.002;
         ud.driftZ = (Math.random() - 0.5) * 0.002;
+        ud.speed = 0.006 + Math.random() * 0.004;
       } else {
+        ud.burst = false;
         sm.material.opacity = 0;
         continue;
       }
+    } else if (!burning && !isBurst) {
+      sm.material.opacity = 0;
+      continue;
     } else {
       sm.position.y += ud.speed;
       sm.position.x += ud.driftX;
@@ -1324,8 +1432,9 @@ function updateIncense() {
     }
     var fadeIn = Math.min(ud.life * 4, 1);
     var fadeOut = Math.min((1 - ud.life) * 2.5, 1);
-    sm.material.opacity = 0.3 * fadeIn * fadeOut;
-    sm.scale.setScalar(1 + ud.life * 2.5);
+    var peak = isBurst ? 0.55 : 0.3;
+    sm.material.opacity = peak * fadeIn * fadeOut;
+    sm.scale.setScalar(1 + ud.life * (isBurst ? 3.5 : 2.5));
   }
 }
 
@@ -1595,6 +1704,25 @@ function onResize() {
 }
 window.addEventListener("resize", onResize);
 
+/* Pointer hit-test for incense stick (touch/click → smoke burst) */
+var incenseRaycaster = new THREE.Raycaster();
+var incensePointer = new THREE.Vector2();
+function tryBurstFromPointer(clientX, clientY) {
+  var rect = renderer.domElement.getBoundingClientRect();
+  incensePointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+  incensePointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+  incenseRaycaster.setFromCamera(incensePointer, camera);
+  var hits = incenseRaycaster.intersectObjects([incenseHit, incenseStick], false);
+  if (hits.length > 0) {
+    burstIncenseSmoke();
+    return true;
+  }
+  return false;
+}
+renderer.domElement.addEventListener("pointerdown", function(e){
+  tryBurstFromPointer(e.clientX, e.clientY);
+}, {passive: true});
+
 /* Animation loop */
 var tick = 0;
 function animate() {
@@ -1734,11 +1862,17 @@ document.getElementById('share-menu-btn').addEventListener('click', function(){
 });
 
 /* Incense replace listener */
-document.getElementById('incense-menu-btn').addEventListener('click', function(){
-  var dd = document.getElementById('menu-dropdown');
-  if(dd) dd.classList.remove('show');
-  if (typeof window.replaceIncense === 'function') window.replaceIncense();
-});
+(function initIncenseButton(){
+  var btn = document.getElementById('incense-replace-btn');
+  if (!btn) return;
+  try {
+    var stored = parseInt(localStorage.getItem('boj_incense_count'), 10);
+    if (!isNaN(stored) && stored >= 0) btn.textContent = '향 교체 · ' + stored;
+  } catch (e) {}
+  btn.addEventListener('click', function(){
+    if (typeof window.replaceIncense === 'function') window.replaceIncense();
+  });
+})();
 
 
 /* ===== Suggest Modal ===== */
