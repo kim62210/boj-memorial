@@ -1533,8 +1533,10 @@ function performIncenseReplace(globalCount) {
   var now = Date.now();
   try { localStorage.setItem(INCENSE_STORAGE_KEY, String(now)); } catch (e) {}
   if (typeof globalCount === "number") setIncenseCount(globalCount);
-  for (var si = 0; si < smokeParticles.length; si++) {
-    smokeParticles[si].userData.life = Math.random() * 0.3;
+  // Re-stagger evenly so the full column appears immediately without gaps
+  var len = smokeParticles.length;
+  for (var si = 0; si < len; si++) {
+    smokeParticles[si].userData.life = si / len;
     smokeParticles[si].userData.burst = false;
     smokeParticles[si].material.opacity = 0;
   }
@@ -1574,8 +1576,9 @@ window.burstIncenseSmoke = burstIncenseSmoke;
 function updateIncense() {
   // Animation (pull → insert → light) owns the stick/tip/lighter during replace
   if (updateIncenseAnim()) {
-    // Still run smoke particles below so smoke trails keep flowing visually
-    var animBurning = true;
+    // Only emit smoke after the lighter has ignited the tip (stage 6: t >= 0.88)
+    var animT = (performance.now() - incenseAnim.startAt) / incenseAnim.duration;
+    var animBurning = animT >= 0.88;
     var emitY0 = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT;
     updateSmokeParticles(animBurning, emitY0);
     return;
