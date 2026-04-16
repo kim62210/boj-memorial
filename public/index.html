@@ -423,7 +423,7 @@ body{
   z-index:8;font-size:12px;padding:5px 14px;bottom:175px}
   #submit-btn{padding:8px 12px;font-size:13px}
   #volume-slider{width:40px}
-  #nick-display span{max-width:70px;font-size:12px}
+  #nick-display span{max-width:none;font-size:12px;overflow:visible;text-overflow:clip}
 }
 </style>
 </head>
@@ -466,13 +466,14 @@ body{
       <div class="bar-input-row">
         <input id="msg-input" type="text" placeholder="추모의 말을 남겨주세요..." maxlength="500" autocomplete="off">
         <button id="submit-btn" type="button">헌화</button>
-        <button id="incense-replace-btn" type="button" title="향초를 새것으로 교체합니다">향 교체 · 0</button>
+        <button id="incense-replace-btn" type="button" title="향초를 새것으로 교체합니다">향 교체</button>
       </div>
     </div>
     <div class="bar-divider"></div>
     <div class="bar-stats">
       <span id="stat-online"></span>
       <span id="stat-flowers"></span>
+      <span id="stat-incense"></span>
     </div>
     <div class="bar-divider"></div>
     <div class="bar-right">
@@ -1215,7 +1216,7 @@ darkPatch.receiveShadow = true;
 scene.add(darkPatch);
 
 /* ===== Incense stick (향초) — 1-hour burn with smoke, gold censer ===== */
-var INCENSE_DURATION_MS = 3600000;
+var INCENSE_DURATION_MS = 180000;
 var INCENSE_ORIGINAL_HEIGHT = 0.7;
 var INCENSE_STORAGE_KEY = "boj_incense_start";
 var INCENSE_COUNT_KEY = "boj_incense_count";
@@ -1505,8 +1506,8 @@ function getIncenseCount() {
 
 function setIncenseCount(n) {
   try { localStorage.setItem(INCENSE_COUNT_KEY, String(n)); } catch (e) {}
-  var btn = document.getElementById("incense-replace-btn");
-  if (btn) btn.textContent = "향 교체 · " + n;
+  var el = document.getElementById("stat-incense");
+  if (el) el.textContent = "\uD5A5\uCD08 " + Number(n).toLocaleString() + "\uAC1C";
 }
 window.setIncenseCount = setIncenseCount;
 
@@ -2078,11 +2079,12 @@ document.getElementById('share-menu-btn').addEventListener('click', function(){
 (function initIncenseButton(){
   var btn = document.getElementById('incense-replace-btn');
   if (!btn) return;
-  // Initial label is seeded from localStorage; server will overwrite with the
-  // global count shortly after connect via incense:state.
+  // Seed the stat display from localStorage so users see something before
+  // the server's incense:state arrives. Server will overwrite with the truth.
   try {
     var stored = parseInt(localStorage.getItem('boj_incense_count'), 10);
-    if (!isNaN(stored) && stored >= 0) btn.textContent = '향 교체 · ' + stored;
+    var el = document.getElementById('stat-incense');
+    if (el) el.textContent = '\uD5A5\uCD08 ' + (!isNaN(stored) && stored >= 0 ? stored.toLocaleString() : '0') + '\uAC1C';
   } catch (e) {}
   btn.addEventListener('click', function(){
     if (btn.disabled) return;
