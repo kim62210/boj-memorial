@@ -36,6 +36,13 @@ function isNicknameForbidden(nickname) {
   return FORBIDDEN_NICKNAMES.some((pattern) => pattern.test(nickname));
 }
 
+// Extract first IP from X-Forwarded-For (trusts only the left-most entry from upstream Caddy)
+function extractIp(xff, fallback) {
+  if (!xff || typeof xff !== "string") return fallback;
+  const first = xff.split(",")[0].trim();
+  return first || fallback;
+}
+
 // --- DB Setup ---
 // [L-4] Reduced pool size from 50 to 20
 const pool = new Pool({
@@ -52,13 +59,21 @@ async function initDB() {
       nickname TEXT NOT NULL DEFAULT '익명의 개발자',
       message TEXT NOT NULL,
       ip TEXT,
+      device_token TEXT,
+      user_agent TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+    ALTER TABLE comments ADD COLUMN IF NOT EXISTS device_token TEXT;
+    ALTER TABLE comments ADD COLUMN IF NOT EXISTS user_agent TEXT;
+    CREATE INDEX IF NOT EXISTS idx_comments_created ON comments(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_comments_device_token ON comments(device_token);
+
     CREATE TABLE IF NOT EXISTS flowers (
       id INTEGER PRIMARY KEY CHECK (id = 1),
       count INTEGER NOT NULL DEFAULT 0
     );
     INSERT INTO flowers (id, count) VALUES (1, 0) ON CONFLICT DO NOTHING;
+
     CREATE TABLE IF NOT EXISTS reports (
       id SERIAL PRIMARY KEY,
       comment_id INTEGER,
@@ -66,7 +81,12 @@ async function initDB() {
       ip TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
-    CREATE INDEX IF NOT EXISTS idx_comments_created ON comments(created_at DESC);
+
+    CREATE TABLE IF NOT EXISTS rate_limits (
+      key TEXT PRIMARY KEY,
+      last_action TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_rate_limits_time ON rate_limits(last_action);
   `);
   const res = await pool.query("SELECT count FROM flowers WHERE id = 1");
   return res.rows[0].count;
@@ -85,8 +105,37 @@ async function flushFlowers() {
 }
 setInterval(flushFlowers, 10000);
 
-// --- Rate limiting ---
+// --- Rate limiting (memory + PostgreSQL persistence) ---
 const rateLimits = new Map();
+const RATE_LIMIT_TTL_MS = 3600000;
+
+// Restore recent rate limit entries from DB on startup so a container restart
+// doesn't reset active cooldowns. Only the last hour is loaded since cooldowns
+// in this service never exceed 30s.
+async function restoreRateLimits() {
+  try {
+    const res = await pool.query(
+      "SELECT key, last_action FROM rate_limits WHERE last_action > NOW() - INTERVAL '1 hour'"
+    );
+    for (const row of res.rows) {
+      rateLimits.set(row.key, new Date(row.last_action).getTime());
+    }
+    console.log(`Restored ${res.rows.length} rate limit entries from DB`);
+  } catch (e) {
+    console.error("Rate limit restore failed:", e.message);
+  }
+}
+
+// Persist a rate limit key asynchronously - failure doesn't block the request
+// because in-memory map is the authoritative read path. DB is for durability
+// across restarts only.
+function persistRateLimit(key) {
+  pool.query(
+    "INSERT INTO rate_limits (key, last_action) VALUES ($1, NOW()) ON CONFLICT (key) DO UPDATE SET last_action = NOW()",
+    [key]
+  ).catch((e) => console.error("Rate limit persist failed:", e.message));
+}
+
 function checkRate(ip, action, cooldownMs, deviceToken) {
   const keyIp = `${ip}:${action}`;
   const keyDt = deviceToken ? `dt:${deviceToken}:${action}` : null;
@@ -95,15 +144,27 @@ function checkRate(ip, action, cooldownMs, deviceToken) {
   const lastDt = keyDt ? (rateLimits.get(keyDt) || 0) : 0;
   if (now - lastIp < cooldownMs || now - lastDt < cooldownMs) return false;
   rateLimits.set(keyIp, now);
-  if (keyDt) rateLimits.set(keyDt, now);
+  persistRateLimit(keyIp);
+  if (keyDt) {
+    rateLimits.set(keyDt, now);
+    persistRateLimit(keyDt);
+  }
   return true;
 }
+
+// Memory cleanup: drop entries older than 1h (covers the longest cooldown with margin)
 setInterval(() => {
   const now = Date.now();
   for (const [key, ts] of rateLimits) {
-    if (now - ts > 60000) rateLimits.delete(key);
+    if (now - ts > RATE_LIMIT_TTL_MS) rateLimits.delete(key);
   }
 }, 60000);
+
+// DB cleanup: purge rate_limits rows older than 1h every 10 minutes
+setInterval(() => {
+  pool.query("DELETE FROM rate_limits WHERE last_action < NOW() - INTERVAL '1 hour'")
+    .catch((e) => console.error("Rate limit DB cleanup failed:", e.message));
+}, 600000);
 
 // --- Express ---
 const app = express();
@@ -117,7 +178,7 @@ app.use(express.json({ limit: "1kb" }));
 // HTTP rate limiting per IP (60 requests per minute)
 const httpRateMap = new Map();
 app.use((req, res, next) => {
-  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+  const ip = extractIp(req.headers["x-forwarded-for"], req.socket.remoteAddress);
   const now = Date.now();
   const windowMs = 60000;
   const maxReq = 60;
@@ -205,7 +266,7 @@ let onlineCount = 0;
 // Socket.io connection rate limiting (max 5 connections per IP per minute)
 const socketRateMap = new Map();
 io.use((socket, next) => {
-  const ip = socket.handshake.headers["x-forwarded-for"] || socket.handshake.address;
+  const ip = extractIp(socket.handshake.headers["x-forwarded-for"], socket.handshake.address);
   const now = Date.now();
   if (!socketRateMap.has(ip)) socketRateMap.set(ip, []);
   const ts = socketRateMap.get(ip).filter(t => now - t < 60000);
@@ -226,7 +287,8 @@ setInterval(() => {
 io.on("connection", (socket) => {
   onlineCount++;
   io.emit("online", onlineCount);
-  const ip = socket.handshake.headers["x-forwarded-for"] || socket.handshake.address;
+  const ip = extractIp(socket.handshake.headers["x-forwarded-for"], socket.handshake.address);
+  const userAgent = (socket.handshake.headers["user-agent"] || "").slice(0, 500);
 
   // [M-3] Event counter middleware
   socketEventCounters.set(socket.id, 0);
@@ -274,11 +336,12 @@ io.on("connection", (socket) => {
     // [M-1] Sanitize inputs before DB insert
     nickname = escapeHtml(nickname);
     const sanitizedMessage = escapeHtml(message);
+    const deviceToken = typeof dt === "string" ? dt.slice(0, 100) : null;
 
     try {
       const result = await pool.query(
-        "INSERT INTO comments (nickname, message, ip) VALUES ($1, $2, $3) RETURNING id, nickname, message, created_at",
-        [nickname, sanitizedMessage, ip]
+        "INSERT INTO comments (nickname, message, ip, device_token, user_agent) VALUES ($1, $2, $3, $4, $5) RETURNING id, nickname, message, created_at",
+        [nickname, sanitizedMessage, ip, deviceToken, userAgent]
       );
       const comment = result.rows[0];
       // Each comment = one flower
@@ -301,10 +364,11 @@ io.on("connection", (socket) => {
     if (!data || !data.reason || typeof data.reason !== "string") return;
     const reason = data.reason.trim().slice(0, 500);
     if (!reason) return;
+    const commentId = Number.isInteger(data.commentId) && data.commentId > 0 ? data.commentId : null;
     try {
       await pool.query(
-        "INSERT INTO reports (reason, ip) VALUES ($1, $2)",
-        [reason, ip]
+        "INSERT INTO reports (comment_id, reason, ip) VALUES ($1, $2, $3)",
+        [commentId, reason, ip]
       );
       socket.emit("report:ack");
     } catch (e) {
@@ -334,8 +398,9 @@ process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
 // Start
-initDB().then((count) => {
+initDB().then(async (count) => {
   flowerTotal = count;
+  await restoreRateLimits();
   server.listen(PORT, () => {
     console.log(`BOJ Memorial running on port ${PORT} (PostgreSQL)`);
   });
