@@ -1328,7 +1328,7 @@ var smokeTexture = (function(){
 })();
 
 var smokeParticles = [];
-for (var si = 0; si < 32; si++) {
+for (var si = 0; si < 300; si++) {
   var smokeMat = new THREE.SpriteMaterial({
     map: smokeTexture,
     color: 0xd0d0d0,
@@ -1341,7 +1341,7 @@ for (var si = 0; si < 32; si++) {
   var sm = new THREE.Sprite(smokeMat);
   sm.scale.set(0.08, 0.08, 1);
   sm.userData = {
-    life: si / 32,
+    life: si / 300,
     speed: 0.005 + Math.random() * 0.003,
     rotSpeed: (Math.random() - 0.5) * 0.006,
     pulsePhase: Math.random() * Math.PI * 2,
@@ -1645,25 +1645,24 @@ function updateSmokeParticles(burning, emitY) {
     // Rise gently
     sm.position.y += ud.speed * 0.9;
 
-    // Moebius-like S-curve: wide sinuous path that twists in 3D
+    // S-curve: left-right only, no z rotation
     var h = sm.position.y - emitY;
     var hClamped = Math.min(1, h * 1.2);
     sm.position.x = Math.sin(h * 2.8 + t) * 2.5 * hClamped;
-    sm.position.z = Math.cos(h * 2.2 + t * 0.6) * 0.8 * hClamped;
 
     sm.material.rotation += ud.rotSpeed;
 
-    // Opacity: fade in, hold, gentle fade out
+    // Opacity
     var fadeIn = Math.min(ud.life * 6, 1);
     var fadeOut = ud.life < 0.5 ? 1 : Math.max(0, 1 - (ud.life - 0.5) * 2);
     var peak = isBurst ? 0.38 : 0.30;
     sm.material.opacity = peak * fadeIn * fadeOut;
 
-    // Wide pulsing size — breathes in and out along the column
-    var pulse = Math.sin(ud.life * 10 + ud.pulsePhase);
+    // Size pulses on a 1-2s real-time cycle (tick at 60fps → period ~90 frames)
+    var pulse = Math.sin(tick * 0.07 + ud.pulsePhase + h * 3);
     var baseSize = isBurst
-      ? (0.15 + ud.life * 0.4 + pulse * 0.05)
-      : (0.10 + ud.life * 0.45 + pulse * 0.04);
+      ? (0.15 + pulse * 0.08)
+      : (0.12 + pulse * 0.06);
     sm.scale.set(baseSize, baseSize, 1);
   }
 }
