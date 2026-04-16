@@ -1627,7 +1627,7 @@ function updateSmokeParticles(burning, emitY) {
     var sm = smokeParticles[si];
     var ud = sm.userData;
     var isBurst = ud.burst;
-    ud.life += ud.speed * (isBurst ? 0.3 : 0.28);
+    ud.life += ud.speed * (isBurst ? 0.35 : 0.35);
     if (ud.life >= 1) {
       if (burning && !isBurst) {
         ud.life = 0;
