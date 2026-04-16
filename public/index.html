@@ -1331,7 +1331,7 @@ var smokeTexture = (function(){
 // 80 sprites evenly staggered along the column so it always looks continuous.
 // Near the tip the column is thin and straight (laminar); higher up an S-curve
 // kicks in and the sprites grow wider (turbulent onset), just like real incense.
-var SMOKE_COUNT = 80;
+var SMOKE_COUNT = 150;
 var SMOKE_MAX_H = 2.5;
 var SMOKE_LIFE_SPEED = 0.0015;
 var smokeBurstUntil = 0;
@@ -1347,7 +1347,7 @@ for (var si = 0; si < SMOKE_COUNT; si++) {
     depthTest: false,
   });
   var sm = new THREE.Sprite(smokeMat);
-  sm.userData = { life: si / SMOKE_COUNT, burst: false };
+  sm.userData = { life: si / 150, burst: false };
   incenseGroup.add(sm);
   smokeParticles.push(sm);
 }
@@ -1633,8 +1633,8 @@ function updateSmokeParticles(burning, emitY) {
     ) * burstBoost;
     sm.position.z = 0;
 
-    // Size: hair-thin at tip, gently wider at top
-    var size = 0.02 + turb * turb * 0.25;
+    // Size: thin at tip, gently wider at top — always overlaps neighbors
+    var size = 0.035 + turb * turb * 0.25;
     if (isBursting) size *= 1.4;
     sm.scale.set(size, size, 1);
 
