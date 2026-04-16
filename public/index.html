@@ -1328,7 +1328,7 @@ var smokeTexture = (function(){
 })();
 
 var smokeParticles = [];
-for (var si = 0; si < 300; si++) {
+for (var si = 0; si < 1500; si++) {
   var smokeMat = new THREE.SpriteMaterial({
     map: smokeTexture,
     color: 0xd0d0d0,
@@ -1339,12 +1339,15 @@ for (var si = 0; si < 300; si++) {
     rotation: Math.random() * Math.PI * 2,
   });
   var sm = new THREE.Sprite(smokeMat);
-  sm.scale.set(0.08, 0.08, 1);
+  sm.scale.set(0.03, 0.03, 1);
   sm.userData = {
-    life: si / 300,
+    life: si / 1500,
     speed: 0.005 + Math.random() * 0.003,
     rotSpeed: (Math.random() - 0.5) * 0.006,
     pulsePhase: Math.random() * Math.PI * 2,
+    xFreq: 2.0 + Math.random() * 2.5,
+    xAmp: 1.5 + Math.random() * 2.5,
+    xPhase: Math.random() * Math.PI * 2,
     burst: false,
   };
   incenseGroup.add(sm);
@@ -1624,7 +1627,6 @@ function updateSmokeParticles(burning, emitY) {
     var sm = smokeParticles[si];
     var ud = sm.userData;
     var isBurst = ud.burst;
-    // ~4s per particle — slow enough to form a dense continuous ribbon
     ud.life += ud.speed * (isBurst ? 0.3 : 0.28);
     if (ud.life >= 1) {
       if (burning && !isBurst) {
@@ -1632,6 +1634,9 @@ function updateSmokeParticles(burning, emitY) {
         sm.position.y = emitY;
         ud.speed = 0.005 + Math.random() * 0.003;
         ud.pulsePhase = Math.random() * Math.PI * 2;
+        ud.xFreq = 2.0 + Math.random() * 2.5;
+        ud.xAmp = 1.5 + Math.random() * 2.5;
+        ud.xPhase = Math.random() * Math.PI * 2;
       } else {
         ud.burst = false;
         sm.material.opacity = 0;
@@ -1645,24 +1650,22 @@ function updateSmokeParticles(burning, emitY) {
     // Rise gently
     sm.position.y += ud.speed * 0.9;
 
-    // S-curve: left-right only, no z rotation
+    // Each particle follows its own randomized S-curve (left-right only)
     var h = sm.position.y - emitY;
-    var hClamped = Math.min(1, h * 1.2);
-    sm.position.x = Math.sin(h * 2.8 + t) * 2.5 * hClamped;
+    var hClamped = Math.min(1, h * 1.0);
+    sm.position.x = Math.sin(h * ud.xFreq + t + ud.xPhase) * ud.xAmp * hClamped;
 
     sm.material.rotation += ud.rotSpeed;
 
     // Opacity
     var fadeIn = Math.min(ud.life * 6, 1);
     var fadeOut = ud.life < 0.5 ? 1 : Math.max(0, 1 - (ud.life - 0.5) * 2);
-    var peak = isBurst ? 0.38 : 0.30;
+    var peak = isBurst ? 0.35 : 0.25;
     sm.material.opacity = peak * fadeIn * fadeOut;
 
-    // Size pulses on a 1-2s real-time cycle (tick at 60fps → period ~90 frames)
-    var pulse = Math.sin(tick * 0.07 + ud.pulsePhase + h * 3);
-    var baseSize = isBurst
-      ? (0.15 + pulse * 0.08)
-      : (0.12 + pulse * 0.06);
+    // Grows 100x: starts tiny (0.03) → ends huge (3.0), with 1-2s pulse
+    var pulse = Math.sin(tick * 0.07 + ud.pulsePhase + h * 2) * (0.02 + ud.life * 0.3);
+    var baseSize = 0.03 + ud.life * 3.0 + pulse;
     sm.scale.set(baseSize, baseSize, 1);
   }
 }
