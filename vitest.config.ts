@@ -8,7 +8,7 @@ export default defineConfig({
   },
   test: {
     globals: false,
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'lib/**/*.test.ts', 'tests/**/*.test.ts'],
     testTimeout: 15000,
     hookTimeout: 15000,
     pool: 'forks',

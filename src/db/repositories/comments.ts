@@ -1,6 +1,6 @@
-import { count, desc, eq } from 'drizzle-orm'
-import type { Database } from '../client.js'
-import { comments, type Comment, type NewComment } from '../schema.js'
+import { count, desc, eq } from 'drizzle-orm';
+import type { Database } from '../client';
+import { comments, type Comment, type NewComment } from '../schema';
 
 export interface ListCommentsOptions {
   limit: number
