@@ -303,6 +303,143 @@ describe("createRateLimiter.reset & size", () => {
   });
 });
 
+describe("관측 API 회귀 고정 (cleanup / history / size)", () => {
+  it("size() 는 추적 중인 고유 키 개수와 정확히 일치한다", () => {
+    const clock = fixedClock(0);
+    const limiter = createRateLimiter({ now: clock.now });
+    expect(limiter.size()).toBe(0);
+
+    limiter.check("a", 5, 60_000);
+    expect(limiter.size()).toBe(1);
+
+    // 같은 키 재사용은 size 를 늘리지 않는다 (Map key 기준)
+    clock.advance(10);
+    limiter.check("a", 5, 60_000);
+    expect(limiter.size()).toBe(1);
+
+    // 새로운 키는 size 를 증가시킨다
+    limiter.check("b", 5, 60_000);
+    expect(limiter.size()).toBe(2);
+
+    // checkAll 의 dedup 도 size 에 반영된다 (k1 은 새 키 1개, k2 중복은 무시)
+    limiter.checkAll(["c", "c", "c"], 1, 60_000);
+    expect(limiter.size()).toBe(3);
+  });
+
+  it("history(key) 는 timestamps `number[]` 배열 형태를 유지한다", () => {
+    const clock = fixedClock(0);
+    const limiter = createRateLimiter({ now: clock.now });
+    limiter.check("k", 3, 60_000);
+    clock.advance(100);
+    limiter.check("k", 3, 60_000);
+    clock.advance(100);
+    limiter.check("k", 3, 60_000);
+
+    const snapshot = limiter.history("k");
+    // 반환 shape: readonly number[]
+    expect(Array.isArray(snapshot)).toBe(true);
+    expect(snapshot).toHaveLength(3);
+    for (const t of snapshot) {
+      expect(typeof t).toBe("number");
+      expect(Number.isFinite(t)).toBe(true);
+    }
+    // 기록 순서 = 시간 순서 (삽입 순서 보존)
+    expect(snapshot).toEqual([0, 100, 200]);
+  });
+
+  it("history(key) 의 반환값은 동결되어 내부 저장소를 변조할 수 없다", () => {
+    const clock = fixedClock(0);
+    const limiter = createRateLimiter({ now: clock.now });
+    limiter.check("k", 2, 60_000);
+    const snapshot = limiter.history("k");
+
+    expect(Object.isFrozen(snapshot)).toBe(true);
+    // 동결된 스냅샷 변조 시도는 TypeError 로 거부된다 (strict mode)
+    expect(() => {
+      (snapshot as number[])[0] = 9999;
+    }).toThrow();
+
+    // 내부 저장소는 영향을 받지 않는다
+    clock.advance(10);
+    limiter.check("k", 2, 60_000);
+    expect(limiter.history("k")).toEqual([0, 10]);
+  });
+
+  it("cleanup() 은 TTL 초과 키만 제거하고 윈도우 내 키는 보존한다", () => {
+    const clock = fixedClock(0);
+    const limiter = createRateLimiter({ now: clock.now, ttlMs: 1000 });
+
+    limiter.check("expired", 1, 60_000); // t=0
+    clock.advance(500);
+    limiter.check("fresh", 1, 60_000); // t=500
+    clock.advance(600);
+    // now=1100: expired (1100ms 전) 은 ttl 초과, fresh (600ms 전) 는 유지
+    expect(limiter.size()).toBe(2);
+    expect(cleanupRateLimits(limiter)).toBe(1);
+    expect(limiter.size()).toBe(1);
+    expect(limiter.history("expired")).toEqual([]);
+    expect(limiter.history("fresh")).toEqual([500]);
+  });
+
+  it("cleanup() 은 부분 만료 키를 유지한 채 만료된 타임스탬프만 잘라낸다", () => {
+    const clock = fixedClock(0);
+    const limiter = createRateLimiter({ now: clock.now, ttlMs: 1000 });
+
+    // 세 번 히트: 0ms, 600ms, 1200ms
+    limiter.check("k", 5, 60_000);
+    clock.advance(600);
+    limiter.check("k", 5, 60_000);
+    clock.advance(600);
+    limiter.check("k", 5, 60_000);
+
+    // now=1200: t=0 은 1200ms 전(만료), t=600 은 600ms 전(유지), t=1200 은 0ms(유지)
+    expect(limiter.cleanup()).toBe(0); // 키는 제거되지 않음
+    expect(limiter.size()).toBe(1);
+    expect(limiter.history("k")).toEqual([600, 1200]);
+  });
+
+  it("cleanup() 은 내부 Map 과 size() 를 원자적으로 동기화한다", () => {
+    const clock = fixedClock(0);
+    const limiter = createRateLimiter({ now: clock.now, ttlMs: 100 });
+
+    for (let i = 0; i < 10; i += 1) {
+      limiter.check(`k${i}`, 1, 60_000);
+    }
+    expect(limiter.size()).toBe(10);
+
+    clock.advance(200); // 모두 TTL 초과
+    const removed = limiter.cleanup();
+    expect(removed).toBe(10);
+    expect(limiter.size()).toBe(0);
+    // 전수 확인: 모든 키가 history 에서 빈 배열을 반환한다
+    for (let i = 0; i < 10; i += 1) {
+      expect(limiter.history(`k${i}`)).toEqual([]);
+    }
+  });
+
+  it("reset() 후 size() 는 즉시 0, history() 는 모든 키에 대해 빈 배열", () => {
+    const limiter = createRateLimiter({ now: () => 0 });
+    limiter.check("a", 1, 1000);
+    limiter.check("b", 1, 1000);
+    limiter.check("c", 1, 1000);
+    expect(limiter.size()).toBe(3);
+
+    limiter.reset();
+    expect(limiter.size()).toBe(0);
+    expect(limiter.history("a")).toEqual([]);
+    expect(limiter.history("b")).toEqual([]);
+    expect(limiter.history("c")).toEqual([]);
+  });
+
+  it("missing key 의 history() 는 동결된 빈 배열 (non-null 계약)", () => {
+    const limiter = createRateLimiter();
+    const result = limiter.history("missing");
+    expect(result).toEqual([]);
+    expect(Array.isArray(result)).toBe(true);
+    expect(Object.isFrozen(result)).toBe(true);
+  });
+});
+
 describe("cleanupRateLimits helper", () => {
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 

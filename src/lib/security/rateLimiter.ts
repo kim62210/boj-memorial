@@ -62,6 +62,19 @@ export interface RateLimiter {
   /**
    * 다중 키 동시 검사 — 모든 키가 통과해야 `true`.
    * 하나라도 실패하면 **아무 키도 기록하지 않는다** (server.js checkRate 호환).
+   *
+   * **Dedup 동작**: 동일 키가 `keys` 배열에 여러 번 등장하면 **첫 평가만 유효**하다.
+   * 이후 중복된 항목은 prune 과 limit 체크를 건너뛰고, commit 단계에서도 한 번만 기록된다.
+   *
+   * @example
+   * // ip 와 device token 을 한 번에 검사 (서로 다른 키 → 각각 1회씩 기록)
+   * limiter.checkAll(["ip:1.2.3.4:flower", "dt:abc:flower"], 1, 2000);
+   *
+   * @example
+   * // 동일 키를 실수로 두 번 전달해도 두 번 평가/기록되지 않는다.
+   * // 아래 호출은 `check("k", 1, 1000)` 1회와 동일한 효과를 낸다.
+   * limiter.checkAll(["k", "k"], 1, 1000);
+   * limiter.history("k").length; // 1 (중복 커밋 없음)
    */
   checkAll(keys: readonly string[], limit: number, windowMs: number): boolean;
   /** 메모리 스토어에서 TTL 초과 항목을 제거하고 삭제된 키 개수를 반환한다. */
