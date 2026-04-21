@@ -7,20 +7,23 @@
  *
  * 이 스크립트는 기존 DB 에 이미 escape 된 데이터 (`&amp;`, `&lt;`, `&gt;`, `&quot;`) 를 1회 디코드한다.
  *
- * 사용법 (운영 안전성 — execute SQL 은 COMMIT 을 자동 실행하지 않음):
+ * 사용법 (운영 안전성 — 기본값 `dry-run` + execute SQL 은 COMMIT 을 자동 실행하지 않음):
  *
- *   # 1. dry-run 으로 영향 행 수·샘플 확인
+ *   # 1. 기본값이 dry-run — 인자 없이 실행하면 읽기 전용 SQL 만 출력된다 (B2-b)
+ *   node --import tsx scripts/decode-legacy-html.ts | psql "$DATABASE_URL"
+ *   # 혹은 명시적으로
  *   node --import tsx scripts/decode-legacy-html.ts --dry-run | psql "$DATABASE_URL"
  *
  *   # 2. 백업 필수
  *   pg_dump "$DATABASE_URL" --table=comments > /tmp/comments-backup.sql
  *
- *   # 3. psql 세션 안에서 수동 검증 후 COMMIT/ROLLBACK
- *   psql "$DATABASE_URL" -f <(node --import tsx scripts/decode-legacy-html.ts)
+ *   # 3. destructive UPDATE 는 `--execute` 로 opt-in + psql 세션에서 수동 COMMIT/ROLLBACK
+ *   psql "$DATABASE_URL" -f <(node --import tsx scripts/decode-legacy-html.ts --execute)
  *   # or 단일 트랜잭션 강제:
- *   node --import tsx scripts/decode-legacy-html.ts | psql -v ON_ERROR_STOP=1 --single-transaction "$DATABASE_URL"
+ *   node --import tsx scripts/decode-legacy-html.ts --execute \
+ *     | psql -v ON_ERROR_STOP=1 --single-transaction "$DATABASE_URL"
  *
- *   스크립트 출력은 `BEGIN; ... SELECT remaining_encoded ...; -- COMMIT;` 로 끝난다.
+ *   execute 출력은 `BEGIN; ... SELECT remaining_encoded ...; -- COMMIT;` 로 끝난다.
  *   operator 가 `remaining_encoded` 값을 확인하고 **수동으로 `COMMIT;` 을 입력**해야 반영된다.
  *   단일 파이프로 실수 실행 시 트랜잭션이 열린 채로 세션이 닫히면 Postgres 는 자동 ROLLBACK.
  *
@@ -31,14 +34,22 @@
 import { argv, stderr, stdout } from "node:process";
 import { pathToFileURL } from "node:url";
 
-type Mode = "execute" | "dry-run";
+export type Mode = "execute" | "dry-run";
 
-function parseMode(args: readonly string[]): Mode {
+/**
+ * CLI 인자에서 실행 모드를 결정한다.
+ *
+ * 안전 기본값(B2-b): 인자가 없으면 **`dry-run`**. destructive UPDATE SQL 은
+ * 반드시 `--execute` 플래그로 opt-in 해야 출력된다.
+ * 두 플래그가 동시에 주어지면 마지막에 등장하는 쪽이 이긴다.
+ */
+export function parseMode(args: readonly string[]): Mode {
+  let mode: Mode = "dry-run";
   for (const arg of args) {
-    if (arg === "--dry-run") return "dry-run";
-    if (arg === "--execute") return "execute";
+    if (arg === "--dry-run") mode = "dry-run";
+    else if (arg === "--execute") mode = "execute";
   }
-  return "execute";
+  return mode;
 }
 
 /**
@@ -106,8 +117,8 @@ function main(): void {
   const mode = parseMode(argv.slice(2));
   stderr.write(
     mode === "dry-run"
-      ? "[decode-legacy-html] dry-run: pipe this SQL into psql for a count + preview.\n"
-      : "[decode-legacy-html] execute: pipe this SQL into psql. Run pg_dump first.\n"
+      ? "[decode-legacy-html] dry-run (default): pipe this SQL into psql for a count + preview. Pass --execute to emit the destructive UPDATE.\n"
+      : "[decode-legacy-html] execute: pipe this SQL into psql. Run pg_dump first; COMMIT is commented out, operator must issue it manually.\n"
   );
   stdout.write(render(mode));
 }

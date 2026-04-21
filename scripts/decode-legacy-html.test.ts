@@ -7,6 +7,7 @@ import {
   buildDecodeExpression,
   buildDryRunSql,
   buildExecuteSql,
+  parseMode,
   render,
 } from "./decode-legacy-html";
 
@@ -83,6 +84,32 @@ describe("render mode dispatch", () => {
 
   it("'execute' → buildExecuteSql", () => {
     expect(render("execute")).toBe(buildExecuteSql());
+  });
+});
+
+describe("parseMode (B2-b — safe default)", () => {
+  it("인자 없으면 dry-run 이 기본값이다 (destructive SQL 은 opt-in 필요)", () => {
+    expect(parseMode([])).toBe("dry-run");
+  });
+
+  it("`--execute` 로만 destructive SQL 을 출력한다", () => {
+    expect(parseMode(["--execute"])).toBe("execute");
+  });
+
+  it("`--dry-run` 명시도 dry-run 을 반환한다", () => {
+    expect(parseMode(["--dry-run"])).toBe("dry-run");
+  });
+
+  it("알 수 없는 플래그는 무시되고 기본값(dry-run)이 유지된다", () => {
+    expect(parseMode(["--yolo", "--force"])).toBe("dry-run");
+  });
+
+  it("--dry-run 이 뒤에 오면 --execute 를 덮어쓴다 (마지막 플래그 우선)", () => {
+    expect(parseMode(["--execute", "--dry-run"])).toBe("dry-run");
+  });
+
+  it("--execute 가 뒤에 오면 --dry-run 을 덮어쓴다 (마지막 플래그 우선)", () => {
+    expect(parseMode(["--dry-run", "--execute"])).toBe("execute");
   });
 });
 
