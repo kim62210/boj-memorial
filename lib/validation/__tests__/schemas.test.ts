@@ -5,6 +5,7 @@ import {
   createIncenseSchema,
   createReportSchema,
   listCommentsQuerySchema,
+  listHistoryQuerySchema,
 } from '../schemas';
 
 describe('createCommentSchema', () => {
@@ -43,9 +44,39 @@ describe('listCommentsQuerySchema', () => {
     }
   });
 
+  it('treats URLSearchParams missing or empty values as defaults', () => {
+    const r = listCommentsQuerySchema.safeParse({ page: '0', limit: null });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data).toEqual({ page: 0, limit: 50 });
+    }
+
+    const empty = listCommentsQuerySchema.safeParse({ page: '', limit: '' });
+    expect(empty.success).toBe(true);
+    if (empty.success) {
+      expect(empty.data).toEqual({ page: 0, limit: 50 });
+    }
+  });
+
   it('rejects negative page and non-positive limit', () => {
     expect(listCommentsQuerySchema.safeParse({ page: '-1' }).success).toBe(false);
     expect(listCommentsQuerySchema.safeParse({ limit: '0' }).success).toBe(false);
+  });
+});
+
+describe('listHistoryQuerySchema', () => {
+  it('defaults missing limit and clamps above the legacy max of 30', () => {
+    const missing = listHistoryQuerySchema.safeParse({ page: '0', limit: null });
+    expect(missing.success).toBe(true);
+    if (missing.success) {
+      expect(missing.data).toEqual({ page: 0, limit: 30 });
+    }
+
+    const aboveMax = listHistoryQuerySchema.safeParse({ page: '0', limit: '31' });
+    expect(aboveMax.success).toBe(true);
+    if (aboveMax.success) {
+      expect(aboveMax.data.limit).toBe(30);
+    }
   });
 });
 

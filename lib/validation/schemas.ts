@@ -13,6 +13,8 @@ const optionalDeviceToken = z
   .optional()
   .nullable();
 
+const queryValue = (value: unknown): unknown => (value === '' ? undefined : value ?? undefined);
+
 export const createCommentSchema = z.object({
   nickname: z.string().trim().max(30).optional().default(''),
   // Primary field per issue spec; legacy socket event used `message`.
@@ -27,13 +29,16 @@ export const createCommentSchema = z.object({
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 
 export const listCommentsQuerySchema = z.object({
-  page: z.coerce.number().int().nonnegative().default(0),
-  limit: z.coerce.number().int().positive().max(100).default(50),
+  page: z.preprocess(queryValue, z.coerce.number().int().nonnegative().default(0)),
+  limit: z.preprocess(queryValue, z.coerce.number().int().positive().max(100).default(50)),
 });
 
 export const listHistoryQuerySchema = z.object({
-  page: z.coerce.number().int().nonnegative().default(0),
-  limit: z.coerce.number().int().positive().max(30).default(30),
+  page: z.preprocess(queryValue, z.coerce.number().int().nonnegative().default(0)),
+  limit: z.preprocess(
+    queryValue,
+    z.coerce.number().int().positive().default(30).transform((limit) => Math.min(limit, 30)),
+  ),
 });
 
 export const createFlowerSchema = z.object({

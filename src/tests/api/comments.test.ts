@@ -36,6 +36,27 @@ describe('app/api/comments', () => {
     expect(flowerCount).toBe(1);
   });
 
+  it('POST escapes nickname and message before storing to prevent legacy history XSS', async () => {
+    const res = await POST(
+      jsonRequest('http://test/api/comments', {
+        nickname: '<img src=x onerror="alert(1)">',
+        content: '<script>alert(1)</script>',
+      }, { ip: '10.0.0.1x' }),
+    );
+    expect(res.status).toBe(201);
+
+    const body = await res.json() as Record<string, unknown>;
+    expect(body.nickname).not.toContain('<');
+    expect(body.nickname).not.toContain('"');
+    expect(body.nickname).toContain('&lt;img');
+    expect(body.message).toBe('&lt;script&gt;alert(1)&lt;/script&gt;');
+
+    const repo = commentsRepo(getDb());
+    const stored = await repo.getById(body.id as number);
+    expect(stored?.nickname).toBe(body.nickname);
+    expect(stored?.message).toBe(body.message);
+  });
+
   it('POST accepts legacy message field and defaults nickname', async () => {
     const res = await POST(
       jsonRequest('http://test/api/comments', {
@@ -102,5 +123,15 @@ describe('app/api/comments', () => {
     const comments = body.comments as Array<Record<string, unknown>>;
     expect(comments).toHaveLength(2);
     expect(comments[0]).toHaveProperty('created_at');
+  });
+
+  it('GET applies the default limit when limit query is omitted', async () => {
+    const repo = commentsRepo(getDb());
+    await repo.insert({ nickname: 'u', message: 'm' });
+
+    const res = await GET(getRequest('http://test/api/comments?page=0', '10.0.0.7'));
+    expect(res.status).toBe(200);
+    const body = await res.json() as Record<string, unknown>;
+    expect(body.total).toBe(1);
   });
 });

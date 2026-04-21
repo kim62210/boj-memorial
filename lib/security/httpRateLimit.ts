@@ -1,15 +1,37 @@
 const WINDOW_MS = 60_000;
 const MAX_REQ = 60;
+const CLEANUP_INTERVAL_MS = 60_000;
 
 interface GlobalWithRateMap {
   __bojHttpRateMap?: Map<string, number[]>;
+  __bojHttpRateCleanupTimer?: ReturnType<typeof setInterval>;
 }
 
 const ref = globalThis as unknown as GlobalWithRateMap;
 
 function store(): Map<string, number[]> {
   if (!ref.__bojHttpRateMap) ref.__bojHttpRateMap = new Map();
+  ensureCleanupTimer();
   return ref.__bojHttpRateMap;
+}
+
+function cleanupHttpRateStore(now: number = Date.now()): void {
+  const map = ref.__bojHttpRateMap;
+  if (!map) return;
+  for (const [ip, bucket] of map.entries()) {
+    const active = bucket.filter((t) => now - t < WINDOW_MS);
+    if (active.length === 0) {
+      map.delete(ip);
+    } else if (active.length !== bucket.length) {
+      map.set(ip, active);
+    }
+  }
+}
+
+function ensureCleanupTimer(): void {
+  if (ref.__bojHttpRateCleanupTimer) return;
+  ref.__bojHttpRateCleanupTimer = setInterval(cleanupHttpRateStore, CLEANUP_INTERVAL_MS);
+  ref.__bojHttpRateCleanupTimer.unref?.();
 }
 
 export interface HttpRateLimitResult {
@@ -52,4 +74,12 @@ export function checkHttpRate(
 // custom server (BRI-21), not the route handler surface.
 export function __resetHttpRateStoreForTests(): void {
   ref.__bojHttpRateMap = new Map();
+}
+
+export function __cleanupHttpRateStoreForTests(now: number): void {
+  cleanupHttpRateStore(now);
+}
+
+export function __getHttpRateStoreSizeForTests(): number {
+  return ref.__bojHttpRateMap?.size ?? 0;
 }

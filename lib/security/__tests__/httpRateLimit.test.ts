@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   __resetHttpRateStoreForTests,
+  __cleanupHttpRateStoreForTests,
+  __getHttpRateStoreSizeForTests,
   checkHttpRate,
 } from '../httpRateLimit';
 
@@ -44,5 +46,14 @@ describe('checkHttpRate', () => {
     for (let i = 0; i < 60; i++) checkHttpRate('4.4.4.4', now + i);
     expect(checkHttpRate('4.4.4.4', now + 60).ok).toBe(false);
     expect(checkHttpRate('5.5.5.5', now + 60).ok).toBe(true);
+  });
+
+  it('drops stale IP buckets during cleanup', () => {
+    const now = 5_000_000;
+    checkHttpRate('6.6.6.6', now);
+    expect(__getHttpRateStoreSizeForTests()).toBe(1);
+
+    __cleanupHttpRateStoreForTests(now + 60_001);
+    expect(__getHttpRateStoreSizeForTests()).toBe(0);
   });
 });

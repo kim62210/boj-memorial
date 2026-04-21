@@ -36,10 +36,16 @@ describe('app/api/history', () => {
     expect(comments[0]).toHaveProperty('created_at');
   });
 
-  it('GET rejects limit values above legacy max 30', async () => {
+  it('GET clamps limit values above legacy max 30', async () => {
+    const repo = commentsRepo(getDb());
+    for (let i = 0; i < 31; i++) {
+      await repo.insert({ nickname: `u${i}`, message: `m${i}` });
+    }
+
     const res = await GET(getRequest('http://test/api/history?limit=31', '15.0.0.2'));
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(200);
     const body = await res.json() as Record<string, unknown>;
-    expect(body.code).toBe('VALIDATION_FAILED');
+    const comments = body.comments as Array<Record<string, unknown>>;
+    expect(comments).toHaveLength(30);
   });
 });

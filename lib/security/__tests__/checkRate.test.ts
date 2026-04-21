@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   __resetActionRateStoreForTests,
+  __cleanupActionRateStoreForTests,
+  __getActionRateStoreSizeForTests,
   checkRate,
 } from '../checkRate';
 
@@ -67,5 +69,20 @@ describe('checkRate', () => {
       now: now + 100,
     });
     expect(blocked).toBe(false);
+  });
+
+  it('drops stale cooldown keys during cleanup', () => {
+    const now = 5_000_000;
+    checkRate({
+      ip: '5.5.5.5',
+      action: 'report',
+      cooldownMs: 30_000,
+      deviceToken: 'dt-y',
+      now,
+    });
+    expect(__getActionRateStoreSizeForTests()).toBe(2);
+
+    __cleanupActionRateStoreForTests(now + 3_600_001);
+    expect(__getActionRateStoreSizeForTests()).toBe(0);
   });
 });

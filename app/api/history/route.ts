@@ -16,8 +16,8 @@ export async function GET(request: Request): Promise<Response> {
 
   const url = new URL(request.url);
   const parsed = listHistoryQuerySchema.safeParse({
-    page: url.searchParams.get('page'),
-    limit: url.searchParams.get('limit'),
+    page: url.searchParams.get('page') ?? undefined,
+    limit: url.searchParams.get('limit') ?? undefined,
   });
   if (!parsed.success) return validationError(parsed.error);
 

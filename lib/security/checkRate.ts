@@ -3,13 +3,36 @@ import type { Database } from '@/src/db/client';
 
 interface GlobalWithRateLimits {
   __bojActionRateMap?: Map<string, number>;
+  __bojActionRateCleanupTimer?: ReturnType<typeof setInterval>;
 }
 
 const ref = globalThis as unknown as GlobalWithRateLimits;
+const ACTION_RATE_CLEANUP_INTERVAL_MS = 60_000;
+const ACTION_RATE_MAX_TTL_MS = 3_600_000;
 
 function store(): Map<string, number> {
   if (!ref.__bojActionRateMap) ref.__bojActionRateMap = new Map();
+  ensureCleanupTimer();
   return ref.__bojActionRateMap;
+}
+
+function cleanupActionRateStore(now: number = Date.now()): void {
+  const map = ref.__bojActionRateMap;
+  if (!map) return;
+  for (const [key, lastAction] of map.entries()) {
+    if (now - lastAction >= ACTION_RATE_MAX_TTL_MS) {
+      map.delete(key);
+    }
+  }
+}
+
+function ensureCleanupTimer(): void {
+  if (ref.__bojActionRateCleanupTimer) return;
+  ref.__bojActionRateCleanupTimer = setInterval(
+    cleanupActionRateStore,
+    ACTION_RATE_CLEANUP_INTERVAL_MS,
+  );
+  ref.__bojActionRateCleanupTimer.unref?.();
 }
 
 export interface CheckRateOptions {
@@ -70,4 +93,12 @@ export function checkRate(opts: CheckRateOptions): boolean {
 
 export function __resetActionRateStoreForTests(): void {
   ref.__bojActionRateMap = new Map();
+}
+
+export function __cleanupActionRateStoreForTests(now: number): void {
+  cleanupActionRateStore(now);
+}
+
+export function __getActionRateStoreSizeForTests(): number {
+  return ref.__bojActionRateMap?.size ?? 0;
 }

@@ -9,6 +9,7 @@ import {
   validationError,
 } from '@/lib/api/errors';
 import { checkRate } from '@/lib/security/checkRate';
+import { escapeHtml } from '@/lib/security/escapeHtml';
 import { checkHttpRate } from '@/lib/security/httpRateLimit';
 import { isNicknameForbidden } from '@/lib/security/forbiddenNicknames';
 import {
@@ -35,8 +36,8 @@ export async function GET(request: Request): Promise<Response> {
 
   const url = new URL(request.url);
   const parsed = listCommentsQuerySchema.safeParse({
-    page: url.searchParams.get('page'),
-    limit: url.searchParams.get('limit'),
+    page: url.searchParams.get('page') ?? undefined,
+    limit: url.searchParams.get('limit') ?? undefined,
   });
   if (!parsed.success) return validationError(parsed.error);
 
@@ -92,11 +93,12 @@ export async function POST(request: Request): Promise<Response> {
     return rateLimited(Math.ceil(COMMENT_COOLDOWN_MS / 1000));
   }
 
-  const text = (content ?? message ?? '').slice(0, 500);
+  const escapedNickname = escapeHtml(nickname);
+  const text = escapeHtml((content ?? message ?? '').slice(0, 500));
 
   try {
     const inserted = await commentsRepo(db).insert({
-      nickname,
+      nickname: escapedNickname,
       message: text,
       ip,
       deviceToken: dt,
