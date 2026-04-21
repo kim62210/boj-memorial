@@ -4,7 +4,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': new URL('.', import.meta.url).pathname,
+      'next/server': 'next/server.js',
     },
+  },
+  ssr: {
+    noExternal: ['next-intl'],
   },
   test: {
     globals: false,

@@ -1,15 +1,12 @@
 import { NextRequest } from 'next/server'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 
-import { proxy, resetProxyRateLimitsForTests } from '../../proxy'
-
-vi.mock('next-intl/middleware', () => ({
-  default: () => (request: { url: string }) => {
-    const response = new Response(null, { status: 200 })
-    response.headers.set('x-middleware-rewrite', new URL('/ko', request.url).toString())
-    return response
-  },
-}))
+import {
+  cleanupProxyRateLimitsForTests,
+  getProxyRateLimitKeyCountForTests,
+  proxy,
+  resetProxyRateLimitsForTests,
+} from '../../proxy'
 
 type NextRequestInit = ConstructorParameters<typeof NextRequest>[1]
 
@@ -53,6 +50,11 @@ describe('proxy security boundary', () => {
 
     expect(response.status).toBe(200)
     expect(response.headers.get('x-middleware-rewrite')).toBe('https://boj-memorial.example/ko')
+    expect(response.headers.get('x-middleware-request-x-next-intl-locale')).toBe('ko')
+    expect(response.headers.get('x-middleware-request-x-nonce')).toBe(nonce)
+    expect(response.headers.get('x-middleware-override-headers')?.split(',')).toEqual(
+      expect.arrayContaining(['x-next-intl-locale', 'x-nonce', 'x-request-id']),
+    )
     expect(response.headers.get('x-request-id')).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
     )
@@ -61,5 +63,38 @@ describe('proxy security boundary', () => {
     expect(csp).toContain(`style-src 'self' 'nonce-${nonce}'`)
     expect(csp).toContain("frame-ancestors 'none'")
     expect(csp).not.toContain("'unsafe-inline'")
+  })
+
+  it('preserves next-intl locale overrides for prefixed locale routes', () => {
+    const response = proxy(request('/en', { headers: { 'x-forwarded-for': '198.51.100.21' } }))
+    const nonce = response.headers.get('x-nonce')
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('x-middleware-request-x-next-intl-locale')).toBe('en')
+    expect(response.headers.get('x-middleware-request-x-nonce')).toBe(nonce)
+    expect(response.headers.get('x-middleware-override-headers')?.split(',')).toEqual(
+      expect.arrayContaining(['x-next-intl-locale', 'x-nonce', 'x-request-id']),
+    )
+  })
+
+  it('redirects the legacy public index out of the Next runtime surface', () => {
+    const response = proxy(
+      request('/index.html', { headers: { 'x-forwarded-for': '198.51.100.22' } }),
+    )
+
+    expect(response.status).toBe(308)
+    expect(response.headers.get('location')).toBe('https://boj-memorial.example/')
+    expect(response.headers.get('content-security-policy')).toContain("frame-ancestors 'none'")
+    expect(response.headers.get('content-security-policy')).not.toContain("'unsafe-inline'")
+  })
+
+  it('removes stale rate-limit buckets during cleanup', () => {
+    proxy(request('/api/incense', { headers: { 'x-forwarded-for': '192.0.2.55' } }))
+
+    expect(getProxyRateLimitKeyCountForTests()).toBe(1)
+
+    cleanupProxyRateLimitsForTests(Date.now() + 60_000)
+
+    expect(getProxyRateLimitKeyCountForTests()).toBe(0)
   })
 })

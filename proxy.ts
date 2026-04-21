@@ -9,6 +9,10 @@ const HTTP_RATE_WINDOW_MS = 60_000
 const handleI18nRouting = createMiddleware(routing)
 const httpRateMap = new Map<string, number[]>()
 
+function generateNonce() {
+  return Buffer.from(crypto.getRandomValues(new Uint8Array(16))).toString('base64')
+}
+
 function compactCsp(value: string) {
   return value.replace(/\s{2,}/g, ' ').trim()
 }
@@ -43,6 +47,10 @@ function extractIp(headers: Headers) {
   )
 }
 
+function isLegacyHtmlEntrypoint(pathname: string) {
+  return pathname === '/index.html'
+}
+
 function checkHttpRate(ip: string, now = Date.now()) {
   const timestamps = (httpRateMap.get(ip) ?? []).filter((ts) => now - ts < HTTP_RATE_WINDOW_MS)
 
@@ -54,6 +62,22 @@ function checkHttpRate(ip: string, now = Date.now()) {
   timestamps.push(now)
   httpRateMap.set(ip, timestamps)
   return true
+}
+
+function cleanupHttpRateMap(now = Date.now()) {
+  for (const [ip, timestamps] of httpRateMap) {
+    const active = timestamps.filter((ts) => now - ts < HTTP_RATE_WINDOW_MS)
+    if (active.length > 0) {
+      httpRateMap.set(ip, active)
+    } else {
+      httpRateMap.delete(ip)
+    }
+  }
+}
+
+const cleanupTimer = setInterval(cleanupHttpRateMap, 120_000)
+if (typeof cleanupTimer !== 'number') {
+  cleanupTimer.unref()
 }
 
 function applySecurityHeaders(response: NextResponse, nonce: string, requestId: string) {
@@ -71,6 +95,19 @@ function applySecurityHeaders(response: NextResponse, nonce: string, requestId: 
   return response
 }
 
+function mergeOverrideHeader(existing: string | null, incoming: string) {
+  const names = new Set<string>()
+  for (const value of [existing, incoming]) {
+    if (!value) continue
+    for (const name of value.split(',')) {
+      const trimmed = name.trim()
+      if (trimmed) names.add(trimmed)
+    }
+  }
+
+  return [...names].join(',')
+}
+
 function applyRequestHeaders(response: NextResponse, requestHeaders: Headers) {
   const headerCarrier = NextResponse.next({
     request: {
@@ -79,23 +116,21 @@ function applyRequestHeaders(response: NextResponse, requestHeaders: Headers) {
   })
 
   for (const [key, value] of headerCarrier.headers) {
-    if (key === 'x-middleware-override-headers' || key.startsWith('x-middleware-request-')) {
+    if (key === 'x-middleware-override-headers') {
+      response.headers.set(key, mergeOverrideHeader(response.headers.get(key), value))
+    } else if (key.startsWith('x-middleware-request-')) {
       response.headers.set(key, value)
     }
   }
 }
 
 export function proxy(request: NextRequest) {
-  const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+  const nonce = generateNonce()
   const requestId = crypto.randomUUID()
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-nonce', nonce)
   requestHeaders.set('x-request-id', requestId)
-  requestHeaders.set('Content-Security-Policy', buildCsp(nonce))
 
-  const routedResponse = request.nextUrl.pathname.startsWith('/api/')
-    ? NextResponse.next()
-    : handleI18nRouting(request)
   const ip = extractIp(request.headers)
 
   if (!checkHttpRate(ip)) {
@@ -111,6 +146,17 @@ export function proxy(request: NextRequest) {
     return response
   }
 
+  if (isLegacyHtmlEntrypoint(request.nextUrl.pathname)) {
+    const target = new URL('/', request.url)
+    const response = applySecurityHeaders(NextResponse.redirect(target, 308), nonce, requestId)
+    applyRequestHeaders(response, requestHeaders)
+    return response
+  }
+
+  const routedResponse = request.nextUrl.pathname.startsWith('/api/')
+    ? NextResponse.next()
+    : handleI18nRouting(request)
+
   applyRequestHeaders(routedResponse, requestHeaders)
   return applySecurityHeaders(routedResponse, nonce, requestId)
 }
@@ -121,6 +167,14 @@ export function resetProxyRateLimitsForTests() {
   httpRateMap.clear()
 }
 
+export function cleanupProxyRateLimitsForTests(now?: number) {
+  cleanupHttpRateMap(now)
+}
+
+export function getProxyRateLimitKeyCountForTests() {
+  return httpRateMap.size
+}
+
 export const config = {
-  matcher: ['/api/:path*', '/((?!api|_next|_vercel|socket.io|.*\\..*).*)'],
+  matcher: ['/api/:path*', '/index.html', '/((?!api|_next|_vercel|socket.io|.*\\..*).*)'],
 }
