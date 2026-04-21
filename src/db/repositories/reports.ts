@@ -1,5 +1,5 @@
-import type { Database } from '../client.js'
-import { reports, type NewReport, type Report } from '../schema.js'
+import type { Database } from '../client';
+import { reports, type NewReport, type Report } from '../schema';
 
 export function reportsRepo(db: Database) {
   return {

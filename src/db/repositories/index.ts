@@ -1,5 +1,5 @@
-export { commentsRepo, type ListCommentsOptions, type PublicComment } from './comments.js'
-export { flowersRepo } from './flowers.js'
-export { incenseRepo } from './incense.js'
-export { reportsRepo } from './reports.js'
-export { rateLimitsRepo } from './rate-limits.js'
+export { commentsRepo, type ListCommentsOptions, type PublicComment } from './comments';
+export { flowersRepo } from './flowers';
+export { incenseRepo } from './incense';
+export { reportsRepo } from './reports';
+export { rateLimitsRepo } from './rate-limits';
