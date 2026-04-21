@@ -3,8 +3,10 @@ const http = require("http");
 const { Server } = require("socket.io");
 const { Pool } = require("pg");
 const path = require("path");
+const { parseAllowedOrigins } = require("./server-security");
 
 const PORT = process.env.PORT || 4100;
+const SOCKET_CORS_ORIGIN = parseAllowedOrigins(process.env.ALLOWED_ORIGINS, process.env.NODE_ENV);
 
 // [C-1] DATABASE_URL must be set via environment - no fallback
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -319,7 +321,7 @@ const io = new Server(server, {
   pingInterval: 25000,
   transports: ["websocket", "polling"],
   // [H-2] Restricted CORS origin
-  cors: { origin: ["https://boj-memorial.brian-dev.cloud", "https://boj-memorial.duckdns.org"] }
+  cors: { origin: SOCKET_CORS_ORIGIN }
 });
 
 let onlineCount = 0;

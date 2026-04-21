@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { headers } from 'next/headers'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
@@ -21,6 +22,8 @@ const localeMetadata: Record<AppLocale, { canonical: string; openGraphLocale: st
     openGraphLocale: 'en_US',
   },
 }
+
+export const dynamic = 'force-dynamic'
 
 interface LocaleLayoutProps {
   children: ReactNode
@@ -101,10 +104,11 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   if (!hasLocale(routing.locales, locale)) notFound()
 
   setRequestLocale(locale)
+  const nonce = (await headers()).get('x-nonce') ?? undefined
 
   return (
     <html lang={locale}>
-      <body className="min-h-screen antialiased">
+      <body className="min-h-screen antialiased" data-csp-nonce={nonce}>
         <NextIntlClientProvider locale={locale}>{children}</NextIntlClientProvider>
       </body>
     </html>
