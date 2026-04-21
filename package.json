@@ -11,9 +11,18 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "test": "vitest run",
+    "test:i18n": "node scripts/verify-i18n.mjs",
+    "test:watch": "vitest",
+    "test:db": "vitest run src/db",
+    "db:pull": "drizzle-kit pull",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
     "next": "^16.2.4",
     "next-intl": "^4.9.1",
@@ -26,8 +35,10 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.3",
     "@types/node": "^25.6.0",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.4",
     "eslint-config-prettier": "^10.1.8",
@@ -35,7 +46,9 @@
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4.2.3",
-    "typescript": "^6.0.3"
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "vitest": "^2.1.4"
   },
   "engines": {
     "node": ">=20.9.0"
