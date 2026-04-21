@@ -1,0 +1,241 @@
+{
+  "metadata": {
+    "title": "BOJ Memorial - 백준 온라인 저지 추모 공간",
+    "description": "Baekjoon Online Judge(www.acmicpc.net) 추모 공간. 2010-2026, 감사했습니다. 헌화와 추모 댓글을 남겨주세요.",
+    "keywords": "백준,BOJ,Baekjoon,백준 온라인 저지,acmicpc,추모,memorial,알고리즘,코딩,헌화",
+    "ogTitle": "BOJ Memorial - 백준 온라인 저지 추모 공간",
+    "ogDescription": "Baekjoon Online Judge(www.acmicpc.net) 추모 공간. 2010년부터 함께한 백준, 감사했습니다. 헌화와 추모 댓글을 남겨주세요.",
+    "ogImageAlt": "백준 온라인 저지 추모 공간 - R.I.P Baekjoon Online Judge 2010-2026",
+    "twitterTitle": "BOJ Memorial - 백준 온라인 저지 추모 공간",
+    "twitterDescription": "백준 추모 공간. 헌화와 추모 댓글을 남겨주세요. R.I.P 2010-2026",
+    "twitterImageAlt": "백준 온라인 저지 추모 - 국화와 비석"
+  },
+  "common": {
+    "cancel": "취소",
+    "close": "닫기",
+    "confirm": "확인",
+    "timeAgo": {
+      "seconds": "{count}초 전",
+      "minutes": "{count}분 전",
+      "hours": "{count}시간 전"
+    }
+  },
+  "entry": {
+    "title": "Baekjoon Online Judge 추모 공간",
+    "instruction": "화면을 터치하여 입장하세요"
+  },
+  "tombstone": {
+    "rip": "R.I.P",
+    "siteName": "Baekjoon Online Judge",
+    "url": "www.acmicpc.net",
+    "years": "2010. 3. 19 — 2026. 4. 28",
+    "epitaph": "“맞았습니다!!” 를 더 이상 볼 수 없습니다"
+  },
+  "countdown": {
+    "label": "서비스 종료까지",
+    "ended": "서비스가 종료되었습니다",
+    "units": {
+      "days": "일",
+      "hours": "시간",
+      "minutes": "분",
+      "seconds": "초"
+    }
+  },
+  "bgm": {
+    "toggleOn": "BGM 켜기",
+    "toggleOff": "BGM 끄기",
+    "toggleAria": "BGM 토글",
+    "volumeAria": "볼륨"
+  },
+  "comment": {
+    "inputPlaceholder": "추모의 말을 남겨주세요...",
+    "submit": "헌화",
+    "cooldown": "{seconds}s",
+    "pushedToast": "$ git push origin memorial"
+  },
+  "nickname": {
+    "refreshTitle": "닉네임 새로고침",
+    "refreshLabel": "↻"
+  },
+  "incense": {
+    "replaceButton": "향 교체",
+    "replaceTitle": "향초를 새것으로 교체합니다",
+    "countBadge": "향초 {count}개"
+  },
+  "flower": {
+    "countOverlay": "지금까지 {count}송이의 국화가 헌화되었습니다",
+    "statBadge": "🌼 {count}송이"
+  },
+  "stats": {
+    "online": "👥 {count}명"
+  },
+  "menu": {
+    "moreAria": "메뉴 열기",
+    "report": "신고",
+    "history": "추모글",
+    "historyHeading": "$ git log --oneline",
+    "historyClose": "히스토리 닫기",
+    "historyLoading": "loading commits...",
+    "historyError": "error",
+    "suggest": "기능 제안",
+    "share": "링크 공유",
+    "privacy": "개인정보처리방침"
+  },
+  "footer": {
+    "bojNotice": "백준 공지사항",
+    "solvedNotice": "solved.ac 공지",
+    "github": "GitHub"
+  },
+  "share": {
+    "title": "R.I.P Baekjoon Online Judge - 추모 공간",
+    "copiedToast": "링크가 복사되었습니다",
+    "copyPrompt": "링크를 복사하세요:"
+  },
+  "report": {
+    "title": "신고하기",
+    "targetLabel": "신고 대상 닉네임",
+    "targetPlaceholder": "닉네임을 입력하세요",
+    "reasonLabel": "신고 사유",
+    "detailLabel": "상세 사유 (선택)",
+    "detailPlaceholder": "상세 내용을 적어주세요...",
+    "cancel": "취소",
+    "submit": "신고 접수",
+    "submittedToast": "신고가 접수되었습니다",
+    "acknowledgedToast": "신고가 접수되었습니다",
+    "missingCategoryToast": "신고 사유를 선택해주세요",
+    "targetPrefix": "대상: ",
+    "categories": {
+      "abuse": "욕설/비방",
+      "spam": "도배",
+      "ads": "광고/홍보",
+      "obscene": "음란물",
+      "privacy": "개인정보 노출",
+      "etc": "기타"
+    }
+  },
+  "suggest": {
+    "title": "기능 제안",
+    "categoryLabel": "카테고리",
+    "contentLabel": "제안 내용",
+    "contentPlaceholder": "제안할 내용을 적어주세요...",
+    "cancel": "취소",
+    "submit": "제안하기",
+    "missingCategoryToast": "카테고리를 선택해주세요",
+    "missingContentToast": "제안 내용을 입력해주세요",
+    "submittedToast": "제안이 접수되었습니다. 감사합니다!",
+    "reportPrefix": "[기능제안]",
+    "categories": {
+      "ui": "UI/디자인",
+      "feature": "기능 추가",
+      "bug": "버그 제보",
+      "etc": "기타"
+    }
+  },
+  "rateLimit": {
+    "title": "너무 빠른 요청입니다",
+    "body": "{seconds}초 후에 다시 시도해주세요",
+    "confirm": "확인"
+  },
+  "privacy": {
+    "title": "개인정보처리방침",
+    "close": "닫기",
+    "intro": "boj-memorial.brian-dev.cloud(이하 “서비스”)는 이용자의 개인정보를 소중히 여기며, «개인정보 보호법» 제30조에 따라 다음과 같이 개인정보처리방침을 수립·공개합니다.",
+    "effectiveDate": "본 방침은 <strong>2026년 4월 15일</strong>부터 시행됩니다. 내용이 변경될 경우 서비스 내 공지 또는 본 페이지를 통해 안내합니다.",
+    "sections": {
+      "purpose": {
+        "heading": "1. 개인정보 처리목적 및 수집 항목",
+        "table": {
+          "purposeHeader": "처리 목적",
+          "itemHeader": "수집 항목",
+          "methodHeader": "수집 방법",
+          "rows": {
+            "abuse": {
+              "purpose": "서비스 이용 환경 식별 및 어뷰징 방지",
+              "item": "IP 주소",
+              "method": "자동 수집"
+            },
+            "service": {
+              "purpose": "추모 서비스 제공 및 이용자 구분",
+              "item": "닉네임 (자동 생성)",
+              "method": "서비스 접속 시 자동 생성"
+            },
+            "report": {
+              "purpose": "신고 접수 및 처리, 분쟁 대응",
+              "item": "신고된 메시지, 신고자·피신고자 IP 주소",
+              "method": "자동 수집 + 신고 기능"
+            }
+          }
+        },
+        "note": "본 서비스는 회원가입 절차가 없으며, 위 항목 외 민감정보(주민등록번호, 신용정보 등)는 수집하지 않습니다."
+      },
+      "retention": {
+        "heading": "2. 개인정보의 보유 및 이용 기간",
+        "intro": "수집된 개인정보는 목적이 달성되면 즉시 파기합니다. 단, 아래의 기간 동안은 보관합니다.",
+        "table": {
+          "itemHeader": "수집 항목",
+          "periodHeader": "보유 기간",
+          "basisHeader": "근거",
+          "rows": {
+            "general": {
+              "item": "IP 주소, 닉네임, 메시지",
+              "period": "수집일로부터 1년",
+              "basis": "서비스 운영 및 분쟁 대비"
+            },
+            "report": {
+              "item": "신고된 메시지 및 관련 IP",
+              "period": "신고 접수일로부터 3년",
+              "basis": "민사 분쟁 소멸시효(민법 §766) 대비"
+            }
+          }
+        }
+      },
+      "thirdParty": {
+        "heading": "3. 개인정보의 제3자 제공",
+        "intro": "서비스는 이용자의 개인정보를 원칙적으로 제3자에게 제공하지 않습니다. 단, 다음의 경우에는 예외로 합니다.",
+        "items": {
+          "consent": "이용자가 사전에 동의한 경우",
+          "legal": "법령에 의거하거나 수사기관의 적법한 요청이 있는 경우"
+        }
+      },
+      "delegation": {
+        "heading": "4. 개인정보 처리의 위탁",
+        "body": "서비스는 개인정보 처리 업무를 외부에 위탁하지 않습니다."
+      },
+      "rights": {
+        "heading": "5. 정보주체의 권리 및 행사 방법",
+        "body": "이용자는 개인정보 열람·정정·삭제·처리정지를 서비스 내 신고/기능 제안 기능을 통해 요청할 수 있으며, 접수 후 10일 이내 처리합니다."
+      },
+      "destruction": {
+        "heading": "6. 개인정보의 파기 절차 및 방법",
+        "intro": "보유 기간이 경과하거나 처리 목적이 달성된 경우 즉시 파기합니다.",
+        "items": {
+          "digital": "<strong>전자적 파일</strong>: 복구 불가능한 방법으로 영구 삭제",
+          "print": "<strong>기록·출력물</strong>: 해당 없음 (종이 문서 미사용)"
+        }
+      },
+      "autoCollection": {
+        "heading": "7. 개인정보 자동 수집 장치의 설치·운영 및 거부",
+        "body": "서비스는 이용자 식별 및 어뷰징 방지를 위해 <strong>IP 주소</strong>를 자동으로 수집합니다. 별도의 쿠키 또는 브라우저 핑거프린트는 수집하지 않습니다."
+      },
+      "officer": {
+        "heading": "8. 개인정보 보호책임자",
+        "table": {
+          "officerLabel": "책임자",
+          "officerValue": "boj-memorial 운영자",
+          "periodLabel": "처리 기간",
+          "periodValue": "접수 후 10일 이내"
+        },
+        "complaintIntro": "개인정보 관련 불만 및 피해 구제는 아래 기관에 문의하실 수 있습니다.",
+        "contacts": {
+          "kisa": "개인정보 침해신고센터: privacy.kisa.or.kr / 국번없이 118",
+          "kopico": "개인정보 분쟁조정위원회: www.kopico.go.kr / 1833-6972",
+          "spo": "대검찰청 사이버수사과: www.spo.go.kr / 국번없이 1301",
+          "police": "경찰청 사이버수사국: ecrm.police.go.kr / 국번없이 182"
+        }
+      },
+      "changes": {
+        "heading": "9. 개인정보처리방침의 변경"
+      }
+    }
+  }
+}
