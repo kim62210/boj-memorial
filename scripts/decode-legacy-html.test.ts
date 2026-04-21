@@ -1,3 +1,6 @@
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -81,4 +84,25 @@ describe("render mode dispatch", () => {
   it("'execute' → buildExecuteSql", () => {
     expect(render("execute")).toBe(buildExecuteSql());
   });
+});
+
+describe("entrypoint guard (B3 회귀 고정)", () => {
+  it("dynamic import 는 stdout/stderr 부작용이 없어야 한다", () => {
+    const scriptUrl = new URL("./decode-legacy-html.ts", import.meta.url);
+    const scriptPath = fileURLToPath(scriptUrl);
+    const result = spawnSync(
+      process.execPath,
+      [
+        "--import",
+        "tsx",
+        "-e",
+        `import(${JSON.stringify(scriptPath)}).then(() => {});`,
+      ],
+      { encoding: "utf8", timeout: 15_000 }
+    );
+    expect(result.status).toBe(0);
+    // main() 이 실행되면 stderr 에 "[decode-legacy-html]" 이, stdout 에 SQL 이 나온다.
+    expect(result.stdout).toBe("");
+    expect(result.stderr).not.toContain("[decode-legacy-html]");
+  }, 20_000);
 });
