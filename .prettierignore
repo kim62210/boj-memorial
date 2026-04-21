@@ -7,3 +7,4 @@ package-lock.json
 public/index.html
 server.js
 ecosystem.config.js
+drizzle/migrations/**/*.sql
