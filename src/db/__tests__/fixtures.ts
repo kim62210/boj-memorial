@@ -1,4 +1,6 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { Pool } from 'pg'
 import { beforeAll, afterAll } from 'vitest'
 import type { Database } from '../client.js'
@@ -13,6 +15,7 @@ class RollbackSignal extends Error {
 
 let pool: Pool | null = null
 let db: Database | null = null
+let schemaReady = false
 
 export function testPool(): Pool {
   if (!pool) {
@@ -67,8 +70,16 @@ export async function truncateAll(): Promise<void> {
   await client.query('UPDATE incense SET count = 0 WHERE id = 1')
 }
 
+async function ensureSchema(): Promise<void> {
+  if (schemaReady) return
+  const migration = readFileSync(resolve(process.cwd(), 'drizzle/migrations/0000_init.sql'), 'utf8')
+  await testPool().query(migration)
+  schemaReady = true
+}
+
 beforeAll(async () => {
   // Ensure singleton rows exist (mirrors legacy initDB seed behaviour).
+  await ensureSchema()
   const client = testPool()
   await client.query('INSERT INTO flowers (id, count) VALUES (1, 0) ON CONFLICT DO NOTHING')
   await client.query('INSERT INTO incense (id, count) VALUES (1, 0) ON CONFLICT DO NOTHING')
@@ -79,5 +90,6 @@ afterAll(async () => {
     await pool.end()
     pool = null
     db = null
+    schemaReady = false
   }
 })
