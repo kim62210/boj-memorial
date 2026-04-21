@@ -20,9 +20,12 @@ describe("extractIpFromXff", () => {
     expect(extractIpFromXff("\t203.0.113.5\t,10.0.0.1")).toBe("203.0.113.5");
   });
 
-  it("선행 빈 토큰은 건너뛰고 다음 유효 토큰을 반환한다", () => {
-    expect(extractIpFromXff(", 203.0.113.5")).toBe("203.0.113.5");
-    expect(extractIpFromXff(" , , 203.0.113.5 ")).toBe("203.0.113.5");
+  it("선행 빈 토큰이면 스푸핑 방지로 fallback 을 사용한다 (server.js 호환)", () => {
+    // `", 203.0.113.5"` 같은 입력은 공격자가 XFF 를 주입한 경우일 수 있으므로
+    // 뒤쪽 토큰을 신뢰하지 않고 프록시 remoteAddr 로 전환한다.
+    expect(extractIpFromXff(", 203.0.113.5", "10.0.0.1")).toBe("10.0.0.1");
+    expect(extractIpFromXff(" , , 203.0.113.5 ", "10.0.0.1")).toBe("10.0.0.1");
+    expect(extractIpFromXff(", 203.0.113.5")).toBeNull();
   });
 
   it("XFF 가 비어 있거나 문자열이 아니면 fallback 으로 대체한다", () => {

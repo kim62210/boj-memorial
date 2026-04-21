@@ -26,10 +26,19 @@ describe("buildDecodeExpression", () => {
 describe("buildExecuteSql", () => {
   const sql = buildExecuteSql();
 
-  it("BEGIN/COMMIT 트랜잭션 래퍼를 포함한다", () => {
+  it("BEGIN 은 실행하지만 COMMIT 은 주석 처리되어 자동 반영되지 않는다 (B2)", () => {
     expect(sql).toMatch(/^-- BRI-20/);
     expect(sql).toContain("BEGIN;");
-    expect(sql).toContain("COMMIT;");
+    // COMMIT 과 ROLLBACK 은 반드시 주석 형태로만 존재해야 함.
+    expect(sql).not.toMatch(/^COMMIT;$/m);
+    expect(sql).not.toMatch(/^ROLLBACK;$/m);
+    expect(sql).toMatch(/^-- COMMIT;/m);
+    expect(sql).toMatch(/^-- ROLLBACK;/m);
+  });
+
+  it("operator 수동 개입 가이드 문구가 포함된다", () => {
+    expect(sql).toContain("operator 가 수동으로");
+    expect(sql).toContain("백업 필수");
   });
 
   it("nickname · message 컬럼 모두 디코드 대상이다", () => {
@@ -39,6 +48,12 @@ describe("buildExecuteSql", () => {
 
   it("WHERE 절로 인코딩된 행만 대상으로 한다", () => {
     expect(sql).toMatch(/WHERE[\s\S]*&\(amp\|lt\|gt\|quot\);/);
+  });
+
+  it("remaining_encoded 검증 쿼리가 UPDATE 뒤에 포함된다", () => {
+    expect(sql).toMatch(
+      /UPDATE comments[\s\S]+SELECT COUNT\(\*\) AS remaining_encoded/
+    );
   });
 });
 

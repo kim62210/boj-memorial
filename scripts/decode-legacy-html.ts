@@ -7,21 +7,29 @@
  *
  * 이 스크립트는 기존 DB 에 이미 escape 된 데이터 (`&amp;`, `&lt;`, `&gt;`, `&quot;`) 를 1회 디코드한다.
  *
- * 사용법:
- *   # 드라이런 (DB 에 영향 없음 — diff 카운트 SQL 출력)
- *   node --loader tsx scripts/decode-legacy-html.ts --dry-run
+ * 사용법 (운영 안전성 — execute SQL 은 COMMIT 을 자동 실행하지 않음):
  *
- *   # 실행 대상 SQL 생성 + psql 파이프
- *   node --loader tsx scripts/decode-legacy-html.ts | psql "$DATABASE_URL"
+ *   # 1. dry-run 으로 영향 행 수·샘플 확인
+ *   node --import tsx scripts/decode-legacy-html.ts --dry-run | psql "$DATABASE_URL"
  *
- *   # 백업 필수:
+ *   # 2. 백업 필수
  *   pg_dump "$DATABASE_URL" --table=comments > /tmp/comments-backup.sql
+ *
+ *   # 3. psql 세션 안에서 수동 검증 후 COMMIT/ROLLBACK
+ *   psql "$DATABASE_URL" -f <(node --import tsx scripts/decode-legacy-html.ts)
+ *   # or 단일 트랜잭션 강제:
+ *   node --import tsx scripts/decode-legacy-html.ts | psql -v ON_ERROR_STOP=1 --single-transaction "$DATABASE_URL"
+ *
+ *   스크립트 출력은 `BEGIN; ... SELECT remaining_encoded ...; -- COMMIT;` 로 끝난다.
+ *   operator 가 `remaining_encoded` 값을 확인하고 **수동으로 `COMMIT;` 을 입력**해야 반영된다.
+ *   단일 파이프로 실수 실행 시 트랜잭션이 열린 채로 세션이 닫히면 Postgres 는 자동 ROLLBACK.
  *
  * 디코드는 escape 역순 (`&quot;` → `"`, `&gt;` → `>`, `&lt;` → `<`, `&amp;` → `&`) 으로
  * 수행해야 `&amp;lt;` 같은 이중 escape 도 원문으로 복구된다.
  */
 
 import { argv, stderr, stdout } from "node:process";
+import { pathToFileURL } from "node:url";
 
 type Mode = "execute" | "dry-run";
 
@@ -57,17 +65,19 @@ export function buildExecuteSql(): string {
   return [
     "-- BRI-20: escape 정책 전환 (저장 raw / 렌더 escape)",
     "-- 백업 필수: pg_dump \"$DATABASE_URL\" --table=comments > /tmp/comments-backup.sql",
+    "-- 안전 장치: 이 스크립트는 COMMIT 을 실행하지 않는다. operator 가 수동으로 입력해야 반영됨.",
     "BEGIN;",
     "UPDATE comments",
     `   SET nickname = ${nickname},`,
     `       message  = ${message}`,
     " WHERE nickname ~ '&(amp|lt|gt|quot);'",
     "    OR message  ~ '&(amp|lt|gt|quot);';",
-    "-- 변경 행 수 확인 후 COMMIT 또는 ROLLBACK",
+    "-- 변경 행 수 확인 후 operator 가 수동으로 COMMIT 또는 ROLLBACK 을 입력한다.",
     "SELECT COUNT(*) AS remaining_encoded FROM comments",
     " WHERE nickname ~ '&(amp|lt|gt|quot);'",
     "    OR message  ~ '&(amp|lt|gt|quot);';",
-    "COMMIT;",
+    "-- COMMIT;   -- remaining_encoded 확인 후 주석을 해제하거나 psql 세션에서 직접 입력",
+    "-- ROLLBACK; -- 문제 발견 시",
     "",
   ].join("\n");
 }
@@ -102,10 +112,13 @@ function main(): void {
   stdout.write(render(mode));
 }
 
-// ESM entrypoint check — tsx 와 ts-node 모두에서 동작
+// ESM entrypoint check — tsx 와 ts-node 모두에서 동작.
+// `process.argv[1]` 가 undefined/empty 일 때 false positive 방지를 위해 명시적으로 검사.
+const argv1 = process.argv[1];
 const invokedDirectly =
-  import.meta.url === `file://${process.argv[1]}` ||
-  import.meta.url.endsWith(process.argv[1] ?? "");
+  typeof argv1 === "string" &&
+  argv1.length > 0 &&
+  import.meta.url === pathToFileURL(argv1).href;
 if (invokedDirectly) {
   main();
 }

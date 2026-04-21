@@ -116,6 +116,10 @@ describe("extractIp ↔ server.js 동등성 (50+ 케이스)", () => {
     // 경계
     { name: "콤마만", xff: ",", fallback: "10.0.0.1" },
     { name: "콤마+공백만", xff: ", ,", fallback: "10.0.0.1" },
+    // B1 회귀 고정 — 선행 빈 토큰 스푸핑 방지(server.js 와 동일하게 fallback 으로 전환)
+    { name: "선행 콤마 + spoofed IP (fallback 전환)", xff: ", 1.1.1.1", fallback: "10.0.0.1" },
+    { name: "선행 콤마+공백 + spoofed IP", xff: " ,  1.1.1.1", fallback: "10.0.0.1" },
+    { name: "선행 콤마만 + fallback 없음", xff: ", 1.1.1.1", fallback: undefined },
     { name: "한글 IP 스푸핑 시도", xff: "abc, 1.1.1.1", fallback: undefined },
     { name: "IPv6 zone id", xff: "fe80::1%eth0, 10.0.0.1", fallback: undefined },
     // fallback 은 무시되어야 함 (XFF 가 유효할 때)
