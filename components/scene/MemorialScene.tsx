@@ -55,6 +55,14 @@ export default function MemorialScene(): React.ReactNode {
 
     // canvas 를 DOM 에 삽입 + 식별자 부여 (BRI-25 z-index 계약)
     ctx.renderer.domElement.setAttribute('data-scene-canvas', 'true')
+    Object.assign(ctx.renderer.domElement.style, {
+      display: 'block',
+      height: '100%',
+      inset: '0',
+      position: 'absolute',
+      width: '100%',
+      zIndex: '0',
+    })
     container.appendChild(ctx.renderer.domElement)
 
     // animate 루프가 읽는 외부 state (BRI-25 에서 sceneStore 와 sync)
@@ -93,13 +101,12 @@ export default function MemorialScene(): React.ReactNode {
       passive: true,
     })
 
-    // reducedMotion 변화 반영 — ref 의 최신값을 매 프레임 state 로 push
+    // reducedMotion 변화 반영 — ref 의 최신값을 animate loop 시작마다 push
     const syncReducedMotion = (): void => {
       state.reducedMotion = reducedMotionRef.current
     }
-    const reducedMotionInterval = window.setInterval(syncReducedMotion, 500)
 
-    const anim = createAnimateLoop({ ctx, lighting, incense, flowers, state })
+    const anim = createAnimateLoop({ ctx, lighting, incense, flowers, state, syncState: syncReducedMotion })
     anim.start()
 
     // WebGLContext loss / restore — renderer 재초기화 없이 RAF 만 정지/재개
@@ -116,7 +123,6 @@ export default function MemorialScene(): React.ReactNode {
 
     return () => {
       anim.stop()
-      window.clearInterval(reducedMotionInterval)
       window.removeEventListener('pointermove', onPointerMove)
       window.removeEventListener('resize', onResize)
       canvas.removeEventListener('webglcontextlost', onContextLost)

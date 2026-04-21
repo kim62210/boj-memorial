@@ -11,7 +11,7 @@ export interface FlowerAnimationEntry {
 export interface FlowerController {
   placeFlowerInstant(idx: number): void
   addFlowerAnimated(): void
-  updateFlowerAnimations(): void
+  updateFlowerAnimations(reducedMotion?: boolean): void
   renderInitialFlowers(count: number): void
   getFlowerCount(): number
 }
@@ -175,7 +175,21 @@ export function createFlowerController(scene: THREE.Scene): FlowerController {
     })
   }
 
-  function updateFlowerAnimations(): void {
+  function settleFlowerAnimations(): void {
+    for (let i = animatingFlowers.length - 1; i >= 0; i--) {
+      const anim = animatingFlowers[i]
+      if (!anim) continue
+      anim.flower.position.y = anim.targetY
+      animatingFlowers.splice(i, 1)
+    }
+  }
+
+  function updateFlowerAnimations(reducedMotion = false): void {
+    if (reducedMotion) {
+      settleFlowerAnimations()
+      return
+    }
+
     const now = performance.now()
     for (let i = animatingFlowers.length - 1; i >= 0; i--) {
       const anim = animatingFlowers[i]

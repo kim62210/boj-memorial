@@ -31,6 +31,7 @@ export interface AnimateDeps {
   incense: IncenseController
   flowers: FlowerController
   state: AnimateState
+  syncState?: () => void
 }
 
 /**
@@ -46,12 +47,13 @@ export interface AnimateDeps {
  * reducedMotion 일 때는 per-frame 랜덤성을 제거하고 camera/꽃/향만 고정 값으로 업데이트.
  */
 export function createAnimateLoop(deps: AnimateDeps): AnimateHandle {
-  const { ctx, lighting, incense, flowers, state } = deps
+  const { ctx, lighting, incense, flowers, state, syncState } = deps
   let tick = 0
   let rafId: number | null = null
 
   const loop = (): void => {
     rafId = requestAnimationFrame(loop)
+    syncState?.()
     tick++
 
     if (!state.reducedMotion) {
@@ -111,8 +113,8 @@ export function createAnimateLoop(deps: AnimateDeps): AnimateHandle {
     }
     ctx.camera.lookAt(0, 0.0, 1.0)
 
-    flowers.updateFlowerAnimations()
-    incense.update(tick)
+    flowers.updateFlowerAnimations(state.reducedMotion)
+    incense.update(tick, { reducedMotion: state.reducedMotion })
 
     ctx.renderer.render(ctx.scene, ctx.camera)
   }

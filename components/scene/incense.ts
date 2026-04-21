@@ -11,7 +11,7 @@ import * as THREE from 'three'
 
 export interface IncenseController {
   /** animate 루프에서 매 프레임 호출 */
-  update(tick: number): void
+  update(tick: number, options?: IncenseUpdateOptions): void
 
   /** 향이 켜진 시각(ms). undefined 면 BRI-25 가 설정하기 전까지는 Date.now() fallback. */
   setStartTime(startMs: number): void
@@ -27,6 +27,10 @@ export interface IncenseController {
 
   /** pointer 가 향초 hitbox 에 닿았는지 raycast 검사 */
   isPointerOnStick(raycaster: THREE.Raycaster): boolean
+}
+
+export interface IncenseUpdateOptions {
+  reducedMotion?: boolean
 }
 
 const INCENSE_DURATION_MS = 180000
@@ -172,7 +176,17 @@ export function createIncense(scene: THREE.Scene): IncenseController {
   let lastTick = 0
 
   function setStartTime(startMs: number): void {
+    if (!Number.isFinite(startMs)) return
     startTime = startMs
+  }
+
+  function clamp01(value: number): number {
+    return Math.min(1, Math.max(0, value))
+  }
+
+  function getRemaining(): number {
+    const elapsed = Date.now() - startTime
+    return clamp01(1 - elapsed / INCENSE_DURATION_MS)
   }
 
   function startReplaceAnim(durationMs = 2800): void {
@@ -199,8 +213,7 @@ export function createIncense(scene: THREE.Scene): IncenseController {
   }
 
   function burstSmoke(): void {
-    const elapsed = Date.now() - startTime
-    const remaining = Math.max(0, 1 - elapsed / INCENSE_DURATION_MS)
+    const remaining = getRemaining()
     if (remaining <= 0.002) return
     smokeBurstUntil = lastTick + 120
     incenseLight.intensity = 0.8
@@ -220,12 +233,9 @@ export function createIncense(scene: THREE.Scene): IncenseController {
       lighterGroup.visible = false
       lighterFlame.visible = false
       lighterLight.intensity = 0
-      incenseStick.visible = true
-      incenseHit.visible = true
-      incenseStick.scale.y = 1
-      incenseStick.position.y = INCENSE_BASE_Y + INCENSE_ORIGINAL_HEIGHT / 2
       incenseStickMat.opacity = 1
       incenseStickMat.transparent = false
+      applyStickState(1)
       return true
     }
 
@@ -302,6 +312,36 @@ export function createIncense(scene: THREE.Scene): IncenseController {
     return true
   }
 
+  function applyStickState(remaining: number): boolean {
+    const currentHeight = INCENSE_ORIGINAL_HEIGHT * remaining
+    const burning = remaining > 0.002
+
+    incenseStick.visible = burning
+    incenseHit.visible = burning
+    incenseTip.visible = burning
+    incenseLight.visible = burning
+
+    if (burning) {
+      incenseStick.scale.y = remaining
+      incenseStick.position.y = INCENSE_BASE_Y + currentHeight / 2
+      incenseHit.scale.y = remaining
+      incenseHit.position.y = INCENSE_BASE_Y + currentHeight / 2
+      const tipY = INCENSE_BASE_Y + currentHeight
+      incenseTip.position.y = tipY
+      incenseLight.position.y = tipY
+    }
+
+    return burning
+  }
+
+  function hideSmokeParticles(): void {
+    for (let si = 0; si < SMOKE_COUNT; si++) {
+      const sm = smokeParticles[si]
+      if (!sm) continue
+      sm.material.opacity = 0
+    }
+  }
+
   function updateSmokeParticles(burning: boolean, emitY: number, tick: number): void {
     const t = tick * 0.012
     const isBursting = tick < smokeBurstUntil
@@ -348,8 +388,29 @@ export function createIncense(scene: THREE.Scene): IncenseController {
     }
   }
 
-  function update(tick: number): void {
+  function update(tick: number, options: IncenseUpdateOptions = {}): void {
     lastTick = tick
+    const reducedMotion = options.reducedMotion ?? false
+
+    if (reducedMotion) {
+      if (incenseAnim.active) {
+        incenseAnim.active = false
+        lighterGroup.visible = false
+        lighterFlame.visible = false
+        lighterLight.intensity = 0
+        incenseStickMat.opacity = 1
+        incenseStickMat.transparent = false
+      }
+
+      const remaining = getRemaining()
+      const burning = applyStickState(remaining)
+      if (burning) {
+        incenseLight.intensity = 0.32
+        incenseTipMat.opacity = 0.85
+      }
+      hideSmokeParticles()
+      return
+    }
 
     if (updateReplaceAnim()) {
       const animT = (performance.now() - incenseAnim.startAt) / incenseAnim.duration
@@ -358,24 +419,11 @@ export function createIncense(scene: THREE.Scene): IncenseController {
       return
     }
 
-    const elapsed = Date.now() - startTime
-    const remaining = Math.max(0, 1 - elapsed / INCENSE_DURATION_MS)
+    const remaining = getRemaining()
     const currentHeight = INCENSE_ORIGINAL_HEIGHT * remaining
-    const burning = remaining > 0.002
-
-    incenseStick.visible = burning
-    incenseHit.visible = burning
-    incenseTip.visible = burning
-    incenseLight.visible = burning
+    const burning = applyStickState(remaining)
 
     if (burning) {
-      incenseStick.scale.y = remaining
-      incenseStick.position.y = INCENSE_BASE_Y + currentHeight / 2
-      incenseHit.scale.y = remaining
-      incenseHit.position.y = INCENSE_BASE_Y + currentHeight / 2
-      const tipY = INCENSE_BASE_Y + currentHeight
-      incenseTip.position.y = tipY
-      incenseLight.position.y = tipY
       incenseLight.intensity = 0.32 + Math.random() * 0.1
       incenseTipMat.opacity = 0.85 + Math.random() * 0.15
     }
