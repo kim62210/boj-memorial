@@ -4,9 +4,10 @@
   "private": true,
   "description": "백준 추모 페이지 (Next.js 16 기반)",
   "scripts": {
-    "dev": "next dev",
+    "dev": "tsx watch server.ts",
     "build": "next build",
-    "start": "next start",
+    "start": "NODE_ENV=production tsx server.ts",
+    "start:next": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
@@ -19,7 +20,8 @@
     "db:pull": "drizzle-kit pull",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "smoke:ws": "node scripts/smoke-ws.mjs"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
@@ -30,7 +32,8 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "socket.io": "^4.8.3",
-    "three": "^0.170.0"
+    "three": "^0.170.0",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.3",
@@ -46,8 +49,8 @@
     "postcss": "^8.5.10",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.7.2",
+    "socket.io-client": "^4.8.3",
     "tailwindcss": "^4.2.3",
-    "tsx": "^4.21.0",
     "typescript": "^6.0.3",
     "vitest": "^2.1.4"
   },
