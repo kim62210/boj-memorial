@@ -1,0 +1,97 @@
+# Multica domain reviewer 라우팅 규칙
+# daemon이 L6.4 dispatch 시 참조 (GitHub CODEOWNERS와 분리)
+# 매칭 순서: 위 → 아래. 첫 매칭 rule의 agents 전부 dispatch.
+#
+# 업데이트 후 daemon 재시작 또는 `multica daemon reload-codeowners` 호출.
+
+version: 1
+
+rules:
+  # DB/마이그레이션 — 최상위 (보수적)
+  - pattern: "migrations/**"
+    agents: [backend-architect, security-reviewer]
+    domain: [db, security]
+    force_labels: [db-migration]
+  - pattern: "**/*.sql"
+    agents: [backend-architect, security-reviewer]
+    domain: [db, security]
+
+  # ADR (항상 arch + 사용자)
+  - pattern: "docs/adr/**"
+    agents: [arch-reviewer]
+    domain: [architecture]
+    force_labels: [adr-change]
+
+  # 인증/권한 (보안 자동 포함)
+  - pattern: "**/*auth*"
+    agents: [backend-architect, security-reviewer]
+    domain: [auth, security]
+  - pattern: "**/middleware/**"
+    agents: [backend-architect, security-reviewer]
+    domain: [middleware, security]
+
+  # Backend
+  - pattern: "backend/**"
+    agents: [backend-architect]
+    domain: [backend]
+  - pattern: "api/**"
+    agents: [backend-architect]
+    domain: [api]
+  - pattern: "**/*.py"
+    agents: [backend-architect]
+    domain: [backend, python]
+  - pattern: "**/*.go"
+    agents: [backend-architect]
+    domain: [backend, go]
+
+  # Frontend
+  - pattern: "frontend/**"
+    agents: [frontend-architect]
+    domain: [frontend]
+  - pattern: "web/**"
+    agents: [frontend-architect]
+    domain: [frontend]
+  - pattern: "**/*.tsx"
+    agents: [frontend-architect]
+    domain: [frontend, react]
+  - pattern: "**/*.ts"
+    agents: [frontend-architect]
+    domain: [frontend, typescript]
+
+  # DevOps / CI
+  - pattern: ".github/**"
+    agents: [devops-architect]
+    domain: [ci, infra]
+  - pattern: "deploy/**"
+    agents: [devops-architect]
+    domain: [deploy, infra]
+  - pattern: "Dockerfile"
+    agents: [devops-architect]
+    domain: [container]
+  - pattern: "docker-compose*.yml"
+    agents: [devops-architect]
+    domain: [container]
+
+  # i18n
+  - pattern: "messages/**"
+    agents: [frontend-architect]
+    domain: [i18n]
+  - pattern: "locales/**"
+    agents: [frontend-architect]
+    domain: [i18n]
+
+  # Fallback (모든 기타)
+  - pattern: "*"
+    agents: [code-reviewer]
+    domain: [general]
+    fallback: true
+
+# 동시 dispatch 상한
+dispatch:
+  max_agents_per_pr: 4
+  dedupe: true                    # 같은 agent가 여러 rule에 걸려도 1회만 호출
+
+# 옵션: force_labels 설명
+force_labels_docs:
+  db-migration: "DB 스키마 변경 포함 - 자동 머지 차단, 수동 리뷰"
+  adr-change: "ADR 문서 변경 - arch reviewer 필수, 자동 머지 차단"
