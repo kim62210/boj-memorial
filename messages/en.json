@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "title": "BOJ Memorial - 백준 온라인 저지 추모 공간",
-    "description": "Baekjoon Online Judge(www.acmicpc.net) 추모 공간. 2010-2026, 감사했습니다. 헌화와 추모 댓글을 남겨주세요.",
+    "title": "BOJ Memorial - Baekjoon Online Judge Memorial",
+    "description": "A memorial space for Baekjoon Online Judge(www.acmicpc.net). 2010-2026, thank you. Leave flowers and memorial comments.",
     "keywords": "백준,BOJ,Baekjoon,백준 온라인 저지,acmicpc,추모,memorial,알고리즘,코딩,헌화",
     "ogTitle": "BOJ Memorial - 백준 온라인 저지 추모 공간",
     "ogDescription": "Baekjoon Online Judge(www.acmicpc.net) 추모 공간. 2010년부터 함께한 백준, 감사했습니다. 헌화와 추모 댓글을 남겨주세요.",
@@ -21,8 +21,8 @@
     }
   },
   "entry": {
-    "title": "Baekjoon Online Judge 추모 공간",
-    "instruction": "화면을 터치하여 입장하세요"
+    "title": "Baekjoon Online Judge Memorial",
+    "instruction": "Touch the screen to enter"
   },
   "tombstone": {
     "rip": "R.I.P",
