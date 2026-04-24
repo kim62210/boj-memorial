@@ -16,6 +16,7 @@
     "test:i18n": "node scripts/verify-i18n.mjs",
     "test:watch": "vitest",
     "test:db": "vitest run src/db",
+    "test:api": "vitest run src/tests/api",
     "db:pull": "drizzle-kit pull",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -30,7 +31,8 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "socket.io": "^4.8.3",
-    "three": "^0.170.0"
+    "three": "^0.170.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.3",

@@ -1,6 +1,6 @@
-import { sql } from 'drizzle-orm'
-import type { Database } from '../client.js'
-import { rateLimits, type RateLimit } from '../schema.js'
+import { sql } from 'drizzle-orm';
+import type { Database } from '../client';
+import { rateLimits, type RateLimit } from '../schema';
 
 export function rateLimitsRepo(db: Database) {
   return {

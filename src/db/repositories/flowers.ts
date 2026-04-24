@@ -1,6 +1,6 @@
-import { eq, sql } from 'drizzle-orm'
-import type { Database } from '../client.js'
-import { flowers } from '../schema.js'
+import { eq, sql } from 'drizzle-orm';
+import type { Database } from '../client';
+import { flowers } from '../schema';
 
 const SINGLETON_ID = 1 as const
 

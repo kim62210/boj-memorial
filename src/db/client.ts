@@ -1,6 +1,6 @@
-import { drizzle } from 'drizzle-orm/node-postgres'
-import { Pool } from 'pg'
-import * as schema from './schema.js'
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from './schema';
 
 export type Database = ReturnType<typeof drizzle<typeof schema>>
 
@@ -11,11 +11,16 @@ interface GlobalWithPool {
 
 const globalRef = globalThis as unknown as GlobalWithPool
 
-function buildPool(): Pool {
-  const url = process.env.DATABASE_URL
+export function getDatabaseUrl(): string {
+  const url = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL
   if (!url) {
-    throw new Error('DATABASE_URL environment variable is not set')
+    throw new Error('TEST_DATABASE_URL or DATABASE_URL environment variable is not set')
   }
+  return url
+}
+
+function buildPool(): Pool {
+  const url = getDatabaseUrl()
   return new Pool({
     connectionString: url,
     max: 20,

@@ -1,5 +1,5 @@
-export { closeDb, getDb, getPool, type Database } from './client.js'
-export * as schema from './schema.js'
+export { closeDb, getDb, getPool, type Database } from './client';
+export * as schema from './schema';
 export {
   commentsRepo,
   flowersRepo,
@@ -8,4 +8,4 @@ export {
   reportsRepo,
   type ListCommentsOptions,
   type PublicComment,
-} from './repositories/index.js'
+} from './repositories/index';
